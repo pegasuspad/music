@@ -1,7 +1,8 @@
 {
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-    "lib": ["dom", "es2023"]
+    "lib": ["dom", "es2023"],
+    "allowSyntheticDefaultImports": true
   },
   "includes": ["src"]
 }

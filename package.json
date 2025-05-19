@@ -10,11 +10,21 @@
   "license": "UNLICENSED",
   "description": "",
   "dependencies": {
-    "easymidi": "^3.1.0"
+    "easymidi": "^3.1.0",
+    "lodash-es": "^4.17.21"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^22.15.19",
+    "eslint": "^9.24.0",
+    "eslint-config-prettier": "^10.1.1",
+    "globals": "^16.0.0",
+    "json-schema-to-typescript": "^15.0.4",
+    "prettier": "^3.5.3",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typed-emitter": "^2.1.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.29.1"
   }
 }
