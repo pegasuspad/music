@@ -1,8 +1,9 @@
-import * as easymidi from 'easymidi'
+import { NovationLaunchpadMiniMk3 } from './vendors/novation/novation-launchpad-mini-mk3.js'
 
-const main = () => {
-  const input = new easymidi.Input('Launchpad Mini MK3');
-
+const main = (): Promise<void> => {
+  return new Promise(() => {
+    new NovationLaunchpadMiniMk3()
+  })
 }
 
 await main()
