@@ -1,6 +1,8 @@
 import * as easymidi from 'easymidi'
 import EventEmitter from 'node:events'
 import type { TypedEventEmitter } from './typed-event-emitter.ts'
+import { logger } from '../logger.ts'
+import { randomUUID } from 'node:crypto'
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type DeviceConnectionStateEventMap = {
@@ -13,6 +15,13 @@ export type MidiDeviceEventEmitter =
 
 export class MidiDeviceWatcher extends (EventEmitter as new () => MidiDeviceEventEmitter) {
   private filter: string[] | undefined
+  private log = logger.child(
+    {},
+    {
+      msgPrefix: `[WATCHER] ${randomUUID().slice(0, 6)} `,
+    },
+  )
+
   private pollIntervalMs: number
   private seen = new Set<string>()
   private handle?: NodeJS.Timeout
@@ -20,15 +29,18 @@ export class MidiDeviceWatcher extends (EventEmitter as new () => MidiDeviceEven
   constructor(options: { devicesToWatch?: string[]; pollIntervalMs?: number }) {
     super()
 
+    this.log.debug('Creating.')
     this.filter = options.devicesToWatch
     this.pollIntervalMs = options.pollIntervalMs ?? 100
   }
 
   start() {
+    this.log.debug('Starting.')
     this.tick()
   }
 
   stop() {
+    this.log.debug('Stopping.')
     clearTimeout(this.handle)
   }
 
@@ -43,6 +55,8 @@ export class MidiDeviceWatcher extends (EventEmitter as new () => MidiDeviceEven
     // newly found
     for (const d of wanted) {
       if (!this.seen.has(d)) {
+        this.log.debug(`found ${d}`)
+
         this.seen.add(d)
         this.emit('found', d)
       }
@@ -51,6 +65,8 @@ export class MidiDeviceWatcher extends (EventEmitter as new () => MidiDeviceEven
     // disconnected
     for (const d of [...this.seen]) {
       if (!wanted.has(d)) {
+        this.log.debug(`lost ${d}`)
+
         this.seen.delete(d)
         this.emit('lost', d)
       }

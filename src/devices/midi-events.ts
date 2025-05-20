@@ -16,10 +16,7 @@ declare module 'easymidi' {
     on<E extends keyof MidiEventMap>(event: E, listener: MidiEventMap[E]): this
   }
   interface Output {
-    send<E extends keyof MidiEventMap>(
-      event: E,
-      ...args: Parameters<MidiEventMap[E]>
-    ): void
+    send<E extends keyof MidiEventMap>(event: E, arg: MidiParameterMap[E]): void
   }
 }
 
@@ -63,4 +60,25 @@ export type MidiEventMap = {
   start: () => void
   stop: () => void
   sysex: (data: Sysex) => void
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MidiParameterMap = {
+  'channel aftertouch': ChannelAfterTouch
+  'poly aftertouch': PolyAfterTouch
+  activesense: undefined
+  cc: ControlChange
+  clock: undefined
+  continue: undefined
+  mtc: Mtc
+  noteoff: Note
+  noteon: Note
+  pitch: Pitch
+  position: Position
+  program: Program
+  reset: undefined
+  select: Select
+  start: undefined
+  stop: undefined
+  sysex: number[]
 }

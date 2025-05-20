@@ -1,10 +1,13 @@
 import isEqual from 'lodash-es/isEqual.js'
 import { MidiDevice } from '../../devices/midi-device.ts'
 import { get } from 'lodash-es'
+import { logger } from '../../logger.ts'
 
 const DeviceInquiryHeader = [
   0x7e, 0x00, 0x06, 0x02, 0x00, 0x20, 0x29, 0x13, 0x01, 0x00, 0x00,
 ]
+
+const log = logger.child({}, { msgPrefix: '[LAUNCHPAD] ' })
 
 export const SysExHeader = [0xf0, 0x00, 0x20, 0x29, 0x02, 0x0d] as const
 export const NovationLaunchpadMiniMk3Commands = {
@@ -118,7 +121,7 @@ export class NovationLaunchpadMiniMk3 {
    * Callback which is invoked when the Launchpad's input device is (re)connected to USB.
    */
   private async onInputConnect(): Promise<void> {
-    console.log(`[CONNECTED] ${this._input.name}`)
+    log.info(`Connected: ${this._input.name}`)
     this._input.on('sysex', (sysex) => {
       this.handleReadbacks(sysex.bytes)
     })
@@ -130,7 +133,8 @@ export class NovationLaunchpadMiniMk3 {
    * Callback which is invoked when the Launchpad's output device is (re)connected to USB.
    */
   private async onOutputConnect(): Promise<void> {
-    console.log(`[CONNECTED] ${this._output.name}`)
+    log.info(`Connected: ${this._output.name}`)
+    log.info('Setting programmer mode.')
     await this.sendCommand('set-programmer-mode', 1)
 
     await this.logDeviceData()
@@ -164,7 +168,7 @@ export class NovationLaunchpadMiniMk3 {
    * Called when the system detects that the device was disconnected from the USB port.
    */
   private onDisconnect(name: string) {
-    console.log(`[DISCONNECTED] ${name}`)
+    log.info(`Disconnected: ${name}`)
   }
 
   /**
@@ -195,7 +199,7 @@ export class NovationLaunchpadMiniMk3 {
         return result
       })
 
-      this._output.send('sysex', { bytes: message })
+      this._output.send('sysex', message)
     })
   }
 
@@ -251,9 +255,7 @@ export class NovationLaunchpadMiniMk3 {
         return false
       })
 
-      this._output.send('sysex', {
-        bytes: [0xf0, 0x7e, 0x7f, 0x06, 0x01, 0xf7],
-      })
+      this._output.send('sysex', [0xf0, 0x7e, 0x7f, 0x06, 0x01, 0xf7])
     })
   }
 }
