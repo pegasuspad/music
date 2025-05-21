@@ -1,52 +1,25 @@
 import isEqual from 'lodash-es/isEqual.js'
-import { MidiDevice } from '../../devices/midi-device.ts'
+import { MidiDevice } from '../../../devices/midi-device.ts'
 import { get } from 'lodash-es'
-import { logger } from '../../logger.ts'
+import { logger } from '../../../logger.ts'
+import {
+  CommandHeader,
+  CommandTrailer,
+  LaunchpadCommands,
+  lookupCommand,
+  type LaunchpadCommand,
+  type LaunchpadCommandConfig,
+  type LaunchpadCommandDataType,
+} from './commands/index.ts'
+import type { Sysex } from 'easymidi'
+import { tryParseReadbackMessage } from './try-parse-readback-message.ts'
+import type { GridLighting } from './commands/set-led-lighting.ts'
 
 const DeviceInquiryHeader = [
   0x7e, 0x00, 0x06, 0x02, 0x00, 0x20, 0x29, 0x13, 0x01, 0x00, 0x00,
 ]
 
 const log = logger.child({}, { msgPrefix: '[LAUNCHPAD] ' })
-
-export const SysExHeader = [0xf0, 0x00, 0x20, 0x29, 0x02, 0x0d] as const
-export const NovationLaunchpadMiniMk3Commands = {
-  'select-layout': {
-    code: 0x00,
-  },
-  'daw-fader-setup': {
-    code: 0x01,
-  },
-  'led-lighting': {
-    code: 0x03,
-  },
-  'text-scrolling': {
-    code: 0x07,
-  },
-  'brightness-level': {
-    code: 0x08,
-  },
-  'led-sleep': {
-    code: 0x09,
-  },
-  'led-feedback': {
-    code: 0x0a,
-  },
-  'set-programmer-mode': {
-    code: 0x0e,
-  },
-  'toggle-daw-mode': {
-    code: 0x10,
-  },
-  'clear-daw-state': {
-    code: 0x12,
-  },
-  'session-color': {
-    code: 0x14,
-  },
-} as const
-export type NovationLaunchpadMiniMk3Command =
-  keyof typeof NovationLaunchpadMiniMk3Commands
 
 type ReadbackHandlerFn = (data: {
   command: number
@@ -123,7 +96,7 @@ export class NovationLaunchpadMiniMk3 {
   private async onInputConnect(): Promise<void> {
     log.info(`Connected: ${this._input.name}`)
     this._input.on('sysex', (sysex) => {
-      this.handleReadbacks(sysex.bytes)
+      this.onSysEx(sysex)
     })
 
     await this.logDeviceData()
@@ -135,9 +108,65 @@ export class NovationLaunchpadMiniMk3 {
   private async onOutputConnect(): Promise<void> {
     log.info(`Connected: ${this._output.name}`)
     log.info('Setting programmer mode.')
-    await this.sendCommand('set-programmer-mode', 1)
+    await this.sendCommand('select-mode', 'programmer')
+
+    const data: GridLighting['pads'] = []
+    for (let y = 0; y < 9; y++) {
+      data[y] = []
+
+      for (let x = 0; x < 9; x++) {
+        data[y][x] = {
+          type: 'pulsing',
+          color: 37,
+        }
+      }
+    }
+
+    await this.sendCommand('set-led-lighting', { pads: data })
 
     await this.logDeviceData()
+  }
+
+  /**
+   * Called when the system detects that the device was disconnected from the USB port.
+   */
+  private onDisconnect(name: string) {
+    log.info(`Disconnected: ${name}`)
+  }
+
+  /**
+   * Handler invoked when the Launchpad sends a SysEx message. Will attempt to parse it is a valid readback, and emit
+   * the corresponding event. Logs a warning and discards the event otherwise.
+   * @param data
+   */
+  private onSysEx({ bytes }: Sysex) {
+    const result = tryParseReadbackMessage(bytes)
+    if (!result.success) {
+      log.warn(
+        { message: bytes.map((b) => `${b}`).join(', ') },
+        `Received unrecognized SysEx message (${bytes.length} bytes)`,
+      )
+      return
+    }
+
+    const { command: code, data } = result
+    const command = lookupCommand(code)
+    if (command === undefined) {
+      log.warn(
+        { message: bytes.map((b) => `${b}`).join(', ') },
+        `Received SysEx message with unrecognized command code: ${code}`,
+      )
+    } else {
+      log.debug(
+        {
+          command: code,
+          data,
+        },
+        `Received SysEx readback message for command: ${code}`,
+      )
+
+      // this.emit(command.name, command.fromBytes(data))
+    }
   }
 
   private async logDeviceData() {
@@ -152,7 +181,7 @@ export class NovationLaunchpadMiniMk3 {
     if (!this._initializationLogsDisplayed) {
       try {
         const firmwareVersion = await this.getFirmwareVersion(5000)
-        console.log(`Detected firmware version: ${firmwareVersion}`)
+        log.info(`Detected firmware version: ${firmwareVersion}`)
       } catch (err: unknown) {
         console.warn(
           `Failed to get firmware version: ${get(err, 'message', String(err))}`,
@@ -162,13 +191,6 @@ export class NovationLaunchpadMiniMk3 {
 
       this._initializationLogsDisplayed = true
     }
-  }
-
-  /**
-   * Called when the system detects that the device was disconnected from the USB port.
-   */
-  private onDisconnect(name: string) {
-    log.info(`Disconnected: ${name}`)
   }
 
   /**
@@ -203,32 +225,6 @@ export class NovationLaunchpadMiniMk3 {
     })
   }
 
-  /**
-   * Sends the specified SysEx command to the device. The data to send is not validated before sending.
-   * @see - Launchpad Mini - Programmer's Referene Manual
-   * @param command Name of the command to send.
-   * @param data Command-specific data.
-   */
-  public async sendCommand(
-    command: NovationLaunchpadMiniMk3Command,
-    ...data: number[]
-  ): Promise<void> {
-    await this.readback(
-      [
-        0xf0,
-        ...SysExHeader,
-        NovationLaunchpadMiniMk3Commands[command].code,
-        ...data,
-        0xf7,
-      ],
-      ({ command, data, raw }) => {
-        console.log('cmd', command, 'dt', data[0], 'raw', JSON.stringify(raw))
-        return command == 14 && data[0] === 1
-      },
-      5000,
-    )
-  }
-
   public getFirmwareVersion(timeoutMs = 250): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -257,5 +253,35 @@ export class NovationLaunchpadMiniMk3 {
 
       this._output.send('sysex', [0xf0, 0x7e, 0x7f, 0x06, 0x01, 0xf7])
     })
+  }
+
+  /**
+   * Sends the specified SysEx command to the device. The data to send is not validated before sending.
+   * @see - Launchpad Mini - Programmer's Referene Manual
+   * @param command Name of the command to send.
+   * @param data Command-specific data.
+   */
+  public sendCommand<C extends LaunchpadCommand = LaunchpadCommand>(
+    command: C,
+    data: LaunchpadCommandDataType<C>,
+  ): Promise<void> {
+    const commandConfig = LaunchpadCommands[command] as LaunchpadCommandConfig<
+      LaunchpadCommandDataType<C>
+    >
+    const marshalledData = commandConfig.toBytes(data)
+
+    const message = [
+      ...CommandHeader,
+      commandConfig.code,
+      ...marshalledData,
+      ...CommandTrailer,
+    ]
+
+    log.debug(
+      { data, message: message.map((b) => `${b}`).join(', ') },
+      `Sending command: ${command}`,
+    )
+    this._output.send('sysex', message)
+    return Promise.resolve()
   }
 }
