@@ -1,7 +1,11 @@
 import { NovationLaunchpadMiniMk3 } from './vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { Frame } from './vendors/novation/launchpad-mini-mk3/ui/frame.ts'
 import type { PadLighting } from './vendors/novation/launchpad-mini-mk3/commands/set-led-lighting.ts'
-import type { LightingOptions } from './vendors/novation/launchpad-mini-mk3/model.ts'
+import type {
+  LightingOptions,
+  PaletteColor,
+  RgbColor,
+} from './vendors/novation/launchpad-mini-mk3/model.ts'
 
 const drawButton = (
   frame: Frame,
@@ -39,6 +43,36 @@ const drawRectangle = (
       frame.set(currentX, currentY, lighting)
     }
   }
+}
+
+const drawFader = (
+  frame: Frame,
+  {
+    position,
+    start = 0,
+    length = 8,
+    value,
+    color = [127, 127, 127],
+  }: {
+    position: number
+    start?: number
+    length?: number
+    value: number
+    color: PaletteColor | RgbColor
+  },
+) => {
+  const height = Math.round((value / 127) * length)
+
+  drawRectangle(frame, {
+    x: position,
+    y: start,
+    width: 1,
+    height,
+    lighting: {
+      color,
+      type: 'static',
+    },
+  })
 }
 
 const main = (): Promise<void> => {
@@ -89,6 +123,14 @@ const main = (): Promise<void> => {
           type: 'static',
           color: 45,
         },
+      })
+
+      drawFader(frame, {
+        position: 3,
+        start: 1,
+        length: 7,
+        value: 127,
+        color: [127, 0, 0],
       })
     }
 
