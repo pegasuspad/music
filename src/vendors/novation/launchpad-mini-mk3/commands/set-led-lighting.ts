@@ -1,53 +1,5 @@
-import type { PaletteColor, RgbColor } from '../model.ts'
+import type { LightingOptions } from '../model.ts'
 import type { LaunchpadCommandWithoutReadback } from './common.ts'
-
-export interface BaseLightingOptions {
-  /**
-   * Type of lighting to enable for this pad:
-   *
-   *   - flashing: alternates between two colors in time with the MIDI clock
-   *   - pulsing: transition between a high- and low-intensity version of a color in time with the MIDI clock
-   *   - static: display a solid color
-   *
-   * See the programmer reference for details on the duty cycle for flashing and pulsing modes.
-   */
-  type: 'flashing' | 'pulsing' | 'static'
-
-  /**
-   * The color to use for this pad. If type is 'static', the LED will light with this color. If the type is
-   * 'pulsing' it will transition between low- and high- intensity versions of this color. The pulsing color must be
-   * specified as a `PaletteColor`, but a static pad can use either a `PaletteColor` or an `RgbColor`.
-   */
-  color?: PaletteColor | RgbColor | undefined
-
-  /**
-   * Two colors to alternate between when the lighting type is "flashing".
-   */
-  colors?: [PaletteColor, PaletteColor] | undefined
-}
-
-export interface FlashingLighting extends BaseLightingOptions {
-  type: 'flashing'
-  color?: undefined
-  colors: [PaletteColor, PaletteColor]
-}
-
-export interface PulsingLighting extends BaseLightingOptions {
-  type: 'pulsing'
-  color: PaletteColor
-  colors?: undefined
-}
-
-export interface StaticLighting extends BaseLightingOptions {
-  type: 'static'
-  color: PaletteColor | RgbColor
-  colors?: undefined
-}
-
-export type LightingOptions =
-  | FlashingLighting
-  | PulsingLighting
-  | StaticLighting
 
 const padLightingToBytes = (
   x: number,
@@ -75,21 +27,29 @@ const padLightingToBytes = (
   }
 }
 
-export interface GridLighting {
+export interface PadLighting {
   /**
-   * Lighting configuration for all pads in the grid. Expects a 9x9 array with each entry representing a pad. The first
-   * index is the Y-coordinate (0 == bottom, 8 == top) and the second is the X-coordinate (0 == left, 8 == right).
+   * X-coordinate of the pad, with '0' being the leftmost column and '8' being the rightmost.
    */
-  pads: LightingOptions[][]
+  x: number
+
+  /**
+   * Y-coordinate of the pad, with '0' being the bottom row and '8' being the top.
+   */
+  y: number
+
+  /**
+   * Lighting configuration to apply to this pad.
+   */
+  lighting: LightingOptions
 }
 
-export const SetLedLightingCommand: LaunchpadCommandWithoutReadback<GridLighting> =
-  {
-    code: 0x03,
-    name: 'set-led-lighting',
-    toBytes: (data) =>
-      data.pads.flatMap((row, y) =>
-        row.flatMap((pad, x) => padLightingToBytes(x, y, pad)),
-      ),
-    readback: false,
-  }
+export const SetLedLightingCommand: LaunchpadCommandWithoutReadback<{
+  pads: PadLighting[]
+}> = {
+  code: 0x03,
+  name: 'set-led-lighting',
+  toBytes: ({ pads }) =>
+    pads.flatMap((pad) => padLightingToBytes(pad.x, pad.y, pad.lighting)),
+  readback: false,
+}

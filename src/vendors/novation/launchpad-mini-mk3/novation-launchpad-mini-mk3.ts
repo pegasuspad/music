@@ -13,7 +13,6 @@ import {
 } from './commands/index.ts'
 import type { Sysex } from 'easymidi'
 import { tryParseReadbackMessage } from './try-parse-readback-message.ts'
-import type { GridLighting } from './commands/set-led-lighting.ts'
 
 const DeviceInquiryHeader = [
   0x7e, 0x00, 0x06, 0x02, 0x00, 0x20, 0x29, 0x13, 0x01, 0x00, 0x00,
@@ -110,20 +109,6 @@ export class NovationLaunchpadMiniMk3 {
     log.info('Setting programmer mode.')
     await this.sendCommand('select-mode', 'programmer')
 
-    const data: GridLighting['pads'] = []
-    for (let y = 0; y < 9; y++) {
-      data[y] = []
-
-      for (let x = 0; x < 9; x++) {
-        data[y][x] = {
-          type: 'pulsing',
-          color: 37,
-        }
-      }
-    }
-
-    await this.sendCommand('set-led-lighting', { pads: data })
-
     await this.logDeviceData()
   }
 
@@ -203,7 +188,7 @@ export class NovationLaunchpadMiniMk3 {
     handler: ReadbackHandlerFn,
     timeoutMs = 1000,
   ): Promise<number[]> {
-    return new Promise<number[]>((resolve, reject) => {
+    return new Promise<number[]>((_, reject) => {
       const timeout = setTimeout(() => {
         reject(
           new Error(
