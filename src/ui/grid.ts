@@ -1,7 +1,8 @@
-import type { LightingOptions } from '../model.ts'
-
 export type Cleared = null
 
+/**
+ * A general-purpose 2D data structure backed by a flat array.
+ */
 export class Grid<T> {
   /**
    * Values contained in each cell of this grid. Stored in row-major form.
@@ -115,70 +116,5 @@ export class Grid<T> {
     }
 
     return result
-  }
-}
-
-/**
- * A frame holds the LED state and related metadata for each of the 9x9 pads on the Launchpad.
- */
-export class Frame {
-  private _current: Grid<LightingOptions>
-  private _previous: Grid<LightingOptions>
-
-  public constructor(
-    public readonly width = 9,
-    public readonly height = 9,
-  ) {
-    this._current = new Grid<LightingOptions>(width, height)
-    this._previous = new Grid<LightingOptions>(width, height)
-  }
-
-  /**
-   * Resets the grid so that every cell has an undefined value.
-   */
-  public clear() {
-    this._current.clear()
-  }
-
-  /**
-   * Gets the value at position (x, y).
-   */
-  public get(x: number, y: number): LightingOptions | undefined {
-    return this._current.get(x, y)
-  }
-
-  /**
-   * Sets a new value at position (x, y). Returns true if the value was successfully set, or false if it was not (due to
-   * invalid arguments or other error.)
-   */
-  public set(x: number, y: number, value: LightingOptions): boolean {
-    return this._current.set(x, y, value)
-  }
-
-  /**
-   * Renders the current frame buffer by passing cell values with (x, y) coordinates to the specified `render` callback
-   * function. Will only pass the values which have been changed since the last call to `render`. If this is the first
-   * render call, then any cell with a defined value will be sent.
-   */
-  public render(
-    renderFn: (
-      values: {
-        x: number
-        y: number
-        lighting: LightingOptions | null
-      }[],
-    ) => void,
-  ) {
-    const diff = this._current.diff(this._previous)
-    renderFn(
-      diff.map((x, y, value) => ({
-        x,
-        y,
-        lighting: value,
-      })),
-    )
-
-    this._previous = this._current
-    this._current = new Grid<LightingOptions>(this.width, this.height)
   }
 }
