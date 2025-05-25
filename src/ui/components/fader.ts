@@ -26,7 +26,7 @@ export const createFader = ({
    * @defaultValue [127, 127, 127] (Bright white)
    */
   color?: RgbColor
-}): Drawable =>
+}): Drawable<RgbColor> =>
   createRectangle({
     color,
     width: 1,

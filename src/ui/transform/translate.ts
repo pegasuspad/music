@@ -1,19 +1,5 @@
-import type { Canvas } from '../canvas.ts'
 import type { Drawable } from '../drawable.ts'
-
-/**
- * Creates a Canvas which draws into an underlying canvas, but applies an offset to each operation.
- */
-const translateCanvas = <T = unknown>(
-  canvas: Canvas<T>,
-  offsetX: number,
-  offsetY: number,
-): Canvas<T> => ({
-  ...canvas,
-  set: (x, y, value) => {
-    canvas.set(x + offsetX, y + offsetY, value)
-  },
-})
+import type { PressEvent } from '../press-event.ts'
 
 /**
  * Transforms the given Drawable such that it draws itself at a new position, defined by offsetX and
@@ -26,12 +12,25 @@ const translateCanvas = <T = unknown>(
  *    Distance to move in the vertical direction. Positive values are up, and negative are down.
  * @returns A new drawable which applies the specified positioning to the original one.
  */
-export const placeAt = <T = unknown>(
+export const translate = <T = unknown>(
   x: number,
   y: number,
   drawable: Drawable<T>,
-): Drawable<T> => ({
-  draw: (canvas) => {
-    drawable.draw(translateCanvas(canvas, x, y))
+) => ({
+  draw: () => {
+    return drawable.draw().map((cell) => ({
+      onPress:
+        cell.onPress === undefined ?
+          undefined
+        : (event: PressEvent) => ({
+            absoluteX: event.absoluteX,
+            absoluteY: event.absoluteY,
+            x: event.x - x,
+            y: event.y - y,
+          }),
+      value: cell.value,
+      x: cell.x + x,
+      y: cell.y + y,
+    }))
   },
 })
