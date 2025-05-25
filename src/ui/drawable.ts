@@ -1,10 +1,15 @@
-import type { PressEvent } from './press-event.ts'
+import type { PressEvent, ReleaseEvent } from './input/input-event.ts'
 
 export interface Cell<T = unknown> {
   /**
    * Optional callback to invoke when this cell is pressed.
    */
   onPress?: (event: PressEvent) => void
+
+  /**
+   * Optional callback to invoke when this cell is released.
+   */
+  onRelease?: (event: ReleaseEvent) => void
 
   /**
    * Value assigned to this cell.

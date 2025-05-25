@@ -1,0 +1,87 @@
+Step 1: Introduce a Hitable Interface
+
+A Hitable is anything that can receive touches:
+
+interface Hitable {
+  hitTest(x: number, y: number): (() => void) | undefined
+}
+
+Or slightly more expressive:
+
+interface Hitable {
+  onHit(x: number, y: number): (() => void) | null
+}
+
+This lets you build a hit map like:
+
+const hitMap = new Map<string, () => void>()
+
+// Later, when processing input:
+const handler = hitMap.get(`${x},${y}`)
+if (handler) handler()
+
+Step 2: Combine Drawable + Hitable into a UI Fragment
+
+Many UI elements are both drawable and hitable:
+
+interface UIFragment {
+  draw(frame: Frame): void
+  registerHits(hitMap: HitMap): void
+}
+
+So your createButton(...) can return:
+
+function createButton(props): UIFragment {
+  return {
+    draw(frame) {
+      frame.set(props.x, props.y, props.pressed ? GREEN : GRAY)
+    },
+    registerHits(hitMap) {
+      hitMap.set(`${props.x},${props.y}`, props.onPress)
+    }
+  }
+}
+
+This keeps drawing and interaction logic tightly coupled at the component level, while keeping concerns cleanly separated at the system level.
+Step 3: Centralized Scene Processing
+
+Now your render pipeline might look like this:
+
+const frame = new Frame()
+const hitMap = new Map<string, () => void>()
+
+const scene: UIFragment[] = [
+  createFader(...),
+  createButton({ x: 1, y: 1, onPress: playNote }),
+  createOverlay(...)
+]
+
+for (const frag of scene) {
+  frag.draw(frame)
+  frag.registerHits(hitMap)
+}
+
+This gives you:
+
+    Centralized and predictable hit handling
+
+    Modular, reusable components
+
+    Easy per-frame regeneration of hit maps (so dynamic UIs are trivial)
+
+Bonus: Separating Draw-Only or Hit-Only Components
+
+You can extend UIFragment like this:
+
+interface Drawable { draw(frame: Frame): void }
+interface Hitable { registerHits(hitMap: HitMap): void }
+
+type UIFragment = Partial<Drawable & Hitable>
+
+Now:
+
+    Some elements only draw (e.g., a waveform visualizer)
+
+    Others only register hits (e.g., invisible hot zones)
+
+    Most do both

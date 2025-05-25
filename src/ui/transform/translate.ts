@@ -1,5 +1,5 @@
 import type { Drawable } from '../drawable.ts'
-import type { PressEvent } from '../press-event.ts'
+import type { PressEvent } from '../input/input-event.ts'
 
 /**
  * Transforms the given Drawable such that it draws itself at a new position, defined by offsetX and
@@ -22,12 +22,13 @@ export const translate = <T = unknown>(
       onPress:
         cell.onPress === undefined ?
           undefined
-        : (event: PressEvent) => ({
-            absoluteX: event.absoluteX,
-            absoluteY: event.absoluteY,
-            x: event.x - x,
-            y: event.y - y,
-          }),
+        : (event: PressEvent) => {
+            cell.onPress?.({
+              ...event,
+              x: event.x - x,
+              y: event.y - y,
+            })
+          },
       value: cell.value,
       x: cell.x + x,
       y: cell.y + y,

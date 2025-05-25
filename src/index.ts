@@ -8,6 +8,8 @@ import { createFader } from './ui/components/fader.ts'
 import { LaunchpadRenderer } from './vendors/novation/launchpad-mini-mk3/lighting/launchpad-renderer.ts'
 import { createCanvas } from './ui/canvas.ts'
 import { RgbColor } from './ui/color.ts'
+import { InputMap } from './ui/input/input-map.ts'
+import { InputRouter } from './ui/input/input-router.ts'
 
 const createScene = (x: number): Drawable<RgbColor> =>
   group(
@@ -52,6 +54,21 @@ const main = (): Promise<void> => {
   return new Promise(() => {
     const launchpad = new NovationLaunchpadMiniMk3()
     const renderer = new LaunchpadRenderer(launchpad)
+    const inputRouter = new InputRouter()
+
+    launchpad._input.on('noteon', (note) => {
+      const y = Math.floor((note.note - 11) / 10)
+      const x = note.note - 11 - y * 10
+
+      console.log('x', x, 'y', y)
+
+      inputRouter.handle({
+        x,
+        y,
+        type: 'pad-down',
+      })
+    })
+
     let x = 0
 
     const update = () => {
@@ -61,9 +78,13 @@ const main = (): Promise<void> => {
     const render = () => {
       const canvas = createCanvas<RgbColor>(9, 9)
       const scene = createScene(x)
-      scene.draw().forEach((cell) => {
+
+      const cells = scene.draw()
+      inputRouter.setMap(InputMap.fromCells(cells, canvas.width, canvas.height))
+      cells.forEach((cell) => {
         canvas.set(cell.x, cell.y, cell.value)
       })
+
       renderer.render(canvas)
     }
 

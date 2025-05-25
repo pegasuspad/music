@@ -1,3 +1,4 @@
+import { logger } from '../../logger.ts'
 import type { RgbColor } from '../color.ts'
 import type { Drawable } from '../drawable.ts'
 import { createRectangle } from './rectangle.ts'
@@ -26,9 +27,21 @@ export const createFader = ({
    * @defaultValue [127, 127, 127] (Bright white)
    */
   color?: RgbColor
-}): Drawable<RgbColor> =>
-  createRectangle({
+}): Drawable<RgbColor> => {
+  const rectangle = createRectangle({
     color,
     width: 1,
     height: Math.round((value / 127) * length),
   })
+
+  return {
+    draw: () => {
+      return rectangle.draw().map((cell) => ({
+        ...cell,
+        onPress: (event) => {
+          logger.info({ event }, 'got fader event')
+        },
+      }))
+    },
+  }
+}

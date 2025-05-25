@@ -28,7 +28,7 @@ type ReadbackHandlerFn = (data: {
 
 export class NovationLaunchpadMiniMk3 {
   private _initializationLogsDisplayed = false
-  private _input: MidiDevice
+  public readonly _input: MidiDevice
   private _output: MidiDevice
 
   constructor({

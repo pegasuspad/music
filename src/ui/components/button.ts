@@ -1,3 +1,4 @@
+import { logger } from '../../logger.ts'
 import type { RgbColor } from '../color.ts'
 import type { Drawable } from '../drawable.ts'
 
@@ -10,6 +11,9 @@ export const createButton = (color: RgbColor): Drawable<RgbColor> => ({
       value: color,
       x: 0,
       y: 0,
+      onPress: (event) => {
+        logger.info({ event }, 'got but event')
+      },
     },
   ],
 })

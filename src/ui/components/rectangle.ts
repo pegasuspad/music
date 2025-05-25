@@ -1,3 +1,4 @@
+import { logger } from '../../logger.ts'
 import type { RgbColor } from '../color.ts'
 import type { Cell, Drawable } from '../drawable.ts'
 
@@ -21,6 +22,9 @@ export const createRectangle = ({
           value: color,
           x,
           y,
+          onPress: (event) => {
+            logger.info({ event }, 'got RECT event')
+          },
         })
       }
     }
