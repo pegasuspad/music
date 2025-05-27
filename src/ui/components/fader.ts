@@ -1,16 +1,29 @@
+import { currentTimeMillis } from '../../engine/timer.ts'
 import type { RgbColor } from '../color.ts'
 import type { Drawable } from '../drawable.ts'
-import type { PressEvent } from '../input/input-event.ts'
+import type {
+  HoldEvent,
+  InteractionEvent,
+  PressEvent,
+  ReleaseEvent,
+} from '../input/input-event.ts'
 
 /**
  * Creates a `Drawable` which displays a virtual fader of a specified size and color.
  */
 export const createFader = ({
+  initialDelay = 300,
   length = 8,
   onChange,
+  orientation = 'vertical',
   value,
   color = [127, 127, 127],
 }: {
+  /**
+   * Initial delay, in milliseconds, before beginning a gradual "fade" (versus simply jumping).
+   */
+  initialDelay?: number
+
   /**
    * Length of the fader (i.e. the height of a vertical fader or the width of a horizontal one.)
    * @defaultValue 8
@@ -23,6 +36,12 @@ export const createFader = ({
   onChange?: (value: number) => void
 
   /**
+   * Orientation of the fader.
+   * @defaultValue 'vertical'
+   */
+  orientation?: 'horizontal' | 'vertical'
+
+  /**
    * Current value of the fader, in the range [0, 127].
    */
   value: number
@@ -32,22 +51,99 @@ export const createFader = ({
    * @defaultValue [127, 127, 127] (Bright white)
    */
   color?: RgbColor
-}): Drawable<RgbColor> => {
-  const onPress = (event: PressEvent) => {
-    const newValue = event.y * (127 / length)
-    onChange?.(newValue)
+}): (() => Drawable<RgbColor>) => {
+  const maxValueForPosition = (position: number) => {
+    return position === length - 1 ? 127 : Math.floor(cellSize * (position + 1))
   }
 
-  const litCells = value / (127 / length)
-  const offColor: RgbColor = [0, 0, 0]
+  const getPosition = (event: InteractionEvent) =>
+    orientation === 'vertical' ? event.y : event.x
 
-  return {
-    draw: () =>
-      Array.from({ length }, (_, i) => ({
-        onPress,
-        value: i <= litCells ? color : offColor,
-        x: 0,
-        y: i,
-      })),
+  const updateValue = (event: InteractionEvent) => {
+    const position = getPosition(event)
+
+    if (hold && currentTimeMillis() - hold.pressedAt > initialDelay) {
+      const increasing =
+        hold.initialValue < maxValueForPosition(getPosition(event))
+
+      const unitsPerSecond = 127 / 1.75
+      const duration =
+        (currentTimeMillis() - (hold.pressedAt + initialDelay)) / 1000
+      const delta = unitsPerSecond * duration
+
+      if (increasing) {
+        currentValue = Math.min(
+          hold.initialValue + delta,
+          maxValueForPosition(position),
+        )
+      } else {
+        currentValue = Math.max(
+          hold.initialValue - delta,
+          maxValueForPosition(position - 1),
+        )
+      }
+    } else if (event.type === 'release') {
+      currentValue = maxValueForPosition(position)
+    }
+
+    onChange?.(Math.ceil(currentValue))
+  }
+
+  const onPress = (event: PressEvent) => {
+    hold ??= {
+      initialValue: currentValue,
+      pressedAt: currentTimeMillis(),
+      position: getPosition(event),
+    }
+  }
+
+  const onRelease = (event: ReleaseEvent) => {
+    updateValue(event)
+    hold = undefined
+  }
+
+  const onHold = (event: HoldEvent) => {
+    if (currentTimeMillis() - event.pressedAt < initialDelay) {
+      return
+    }
+    updateValue(event)
+  }
+
+  let hold:
+    | { initialValue: number; pressedAt: number; position: number }
+    | undefined = undefined
+  let currentValue = value
+  const cellSize = Math.floor(127 / length)
+
+  const scaleColor = (original: RgbColor, intensity: number) =>
+    [
+      original[0] * intensity,
+      original[1] * intensity,
+      original[2] * intensity,
+    ] satisfies RgbColor
+
+  return () => {
+    const fullLitCells = Math.floor(currentValue / cellSize)
+    const partialIntensity = Math.max(
+      (currentValue - fullLitCells * cellSize) / cellSize,
+      0.15,
+    )
+    const offColor: RgbColor = scaleColor(color, 0.15)
+    const partialColor: RgbColor = scaleColor(color, partialIntensity)
+
+    return {
+      draw: () =>
+        Array.from({ length }, (_, i) => ({
+          onHold,
+          onPress,
+          onRelease,
+          value:
+            i < fullLitCells ? color
+            : i === fullLitCells ? partialColor
+            : offColor,
+          x: orientation === 'vertical' ? 0 : i,
+          y: orientation === 'vertical' ? i : 0,
+        })),
+    }
   }
 }
