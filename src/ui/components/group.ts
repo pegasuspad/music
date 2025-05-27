@@ -7,4 +7,5 @@ export const group = <T = unknown>(
   ...drawables: Drawable<T>[]
 ): Drawable<T> => ({
   draw: () => drawables.flatMap((drawable) => drawable.draw()),
+  // might need events?
 })
