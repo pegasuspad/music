@@ -1,7 +1,7 @@
 import { pino } from 'pino'
 
-import './config.ts'
+import { getConfig } from './config.ts'
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL ?? 'info',
+  level: getConfig().logLevel,
 })
