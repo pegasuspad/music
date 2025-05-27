@@ -1,8 +1,14 @@
 import { type Canvas } from '../../src/ui/canvas.ts'
 import { type RgbColor } from '../../src/ui/color.ts'
+import {
+  type PadEventEmitter,
+  type PadEventMap,
+} from '../../src/devices/pad-event.ts'
+import { Events } from '../../src/typed-event-emitter.ts'
 
 export class WebRenderer {
   private grid: HTMLDivElement[][] = []
+  private _padEvents: PadEventEmitter = new Events<PadEventMap>()
 
   constructor(container: HTMLElement) {
     container.style.display = 'grid'
@@ -21,6 +27,32 @@ export class WebRenderer {
         cell.dataset.x = x.toString()
         cell.dataset.y = y.toString()
         container.appendChild(cell)
+
+        cell.onmousedown = () => {
+          console.log('cellds', cell.dataset)
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const x = parseInt(cell.dataset.x!)
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const y = parseInt(cell.dataset.y!)
+          this._padEvents.emit('pad-down', {
+            type: 'pad-down',
+            x,
+            y,
+          })
+        }
+
+        cell.onmouseup = () => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const x = parseInt(cell.dataset.x!)
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const y = parseInt(cell.dataset.y!)
+          this._padEvents.emit('pad-up', {
+            type: 'pad-up',
+            x,
+            y,
+          })
+        }
+
         this.grid[y][x] = cell
       }
     }
@@ -38,17 +70,7 @@ export class WebRenderer {
     }
   }
 
-  onPress(callback: (x: number, y: number) => void) {
-    for (const row of this.grid) {
-      for (const cell of row) {
-        cell.onclick = () => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const x = parseInt(cell.dataset.x!)
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const y = parseInt(cell.dataset.y!)
-          callback(x, y)
-        }
-      }
-    }
+  public get padEvents(): PadEventEmitter {
+    return this._padEvents
   }
 }

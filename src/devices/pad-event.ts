@@ -1,3 +1,5 @@
+import type { TypedEventEmitter } from '../typed-event-emitter.ts'
+
 export const PadEventTypes = ['pad-down', 'pad-up'] as const
 export type PadEventType = (typeof PadEventTypes)[number]
 
@@ -30,3 +32,18 @@ export interface PadUpEvent extends BasePadEvent {
 }
 
 export type PadEvent = PadDownEvent | PadUpEvent
+
+/**
+ * Object which responds to phyiscal interactions with an input device and emits appropraite 'pad-down' and
+ * 'pad-up' events.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PadEventMap = {
+  'pad-down': (event: PadDownEvent) => void
+  'pad-up': (event: PadUpEvent) => void
+}
+
+export type PadEventEmitter = TypedEventEmitter<{
+  'pad-down': (event: PadDownEvent) => void
+  'pad-up': (event: PadUpEvent) => void
+}>

@@ -5,8 +5,6 @@ import type {
   InteractionEventOfType,
   InteractionEventType,
 } from './input-event.ts'
-import { logger } from '../../logger.ts'
-import { keys } from 'lodash-es'
 
 export type CellHandlerKey = keyof Cell & `on${string}`
 

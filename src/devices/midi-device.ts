@@ -5,7 +5,7 @@ import {
   MidiEvents,
   MidiParameterMap,
 } from './midi-events.ts'
-import type { TypedEventEmitter } from './typed-event-emitter.ts'
+import type { TypedEventEmitter } from '../typed-event-emitter.ts'
 import { MidiDeviceWatcher } from './midi-device-watcher.ts'
 import pino from 'pino'
 import { logger } from '../logger.ts'

@@ -1,6 +1,6 @@
 import * as easymidi from 'easymidi'
 import EventEmitter from 'node:events'
-import type { TypedEventEmitter } from './typed-event-emitter.ts'
+import type { TypedEventEmitter } from '../typed-event-emitter.ts'
 import { logger } from '../logger.ts'
 import { randomUUID } from 'node:crypto'
 
