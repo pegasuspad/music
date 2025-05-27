@@ -13,8 +13,8 @@ export class WebRenderer {
   constructor(container: HTMLElement) {
     container.style.display = 'grid'
     container.style.gridTemplateColumns = 'repeat(9, 1fr)'
-    container.style.width = '360px'
-    container.style.height = '360px'
+    container.style.width = '600px'
+    container.style.height = '600px'
     container.style.gap = '2px'
 
     for (let y = 8; y >= 0; y--) {

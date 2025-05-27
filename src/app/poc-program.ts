@@ -3,12 +3,13 @@ import { createButton } from '../ui/components/button.ts'
 import { createFader } from '../ui/components/fader.ts'
 import { group } from '../ui/components/group.ts'
 import { createRectangle } from '../ui/components/rectangle.ts'
-import type { Program } from '../ui/program.ts'
+import type { Program } from '../engine/program.ts'
 import { translate } from '../ui/transform/translate.ts'
 
 let fValue = 127
 
 export const createPoc = (): Program => {
+  let realX = 0
   let x = 0
 
   return {
@@ -55,8 +56,9 @@ export const createPoc = (): Program => {
           ),
         ),
       ),
-    tick: () => {
-      x = (x + 1) % 9
+    tick: (elapsedSeconds: number) => {
+      realX = (realX + elapsedSeconds * 4.5) % 9
+      x = Math.round(realX)
     },
   }
 }
