@@ -5,11 +5,7 @@ import { createCanvas } from '../ui/canvas.ts'
 import { InputRouter } from '../ui/input/input-router.ts'
 import { InputMap } from '../ui/input/input-map.ts'
 import type { Program } from './program.ts'
-import { currentTimeMillis } from './timer.ts'
 import { startLoop } from './main-loop.ts'
-
-const targetFps = 60
-const targetFrameDuration = 1 / targetFps // seconds
 
 export const loop = async ({
   events,
@@ -47,10 +43,6 @@ export const loop = async ({
 
   const inputRouter = new InputRouter()
 
-  program.onUpdate?.(() => {
-    render(inputRouter)
-  })
-
   events?.on('pad-down', (event) => {
     inputRouter.handle(event)
   })
@@ -64,6 +56,9 @@ export const loop = async ({
     render: () => {
       render(inputRouter)
     },
-    update: program.tick?.bind(program),
+    update: (elapsedSeconds) => {
+      inputRouter.tick(elapsedSeconds)
+      program.tick?.(elapsedSeconds)
+    },
   })
 }

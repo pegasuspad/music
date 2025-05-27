@@ -1,9 +1,15 @@
 import type { PadEvent } from '../../devices/pad-event.ts'
+import { currentTimeMillis } from '../../engine/timer.ts'
 import type { InteractionEvent, InteractionEventType } from './input-event.ts'
 import { InputMap } from './input-map.ts'
 
 export class InputRouter {
   private inputMap: InputMap | null = null
+  /**
+   * Map containing the start time for when any pressed pads were first pressed.
+   **/
+  private padHolds: Map<string, { x: number; y: number; pressedAt: number }> =
+    new Map<string, { x: number; y: number; pressedAt: number }>()
 
   /**
    * Sets the per-frame InputMap to use for routing events.
@@ -23,13 +29,23 @@ export class InputRouter {
 
     //    logger.info({ event }, 'InputRouter: got input event')
 
+    const key = `${event.x},${event.y}`
+    if (event.type === 'pad-down') {
+      this.padHolds.set(key, {
+        x: event.x,
+        y: event.y,
+        pressedAt: currentTimeMillis(),
+      })
+    } else {
+      this.padHolds.delete(key)
+    }
+
     const { x, y } = event
     const type: InteractionEventType =
       event.type === 'pad-down' ? 'press' : 'release'
 
     const handler = this.inputMap.getHandler(x, y, type)
     if (!handler) {
-      console.log('noasdf')
       return
     }
 
@@ -42,5 +58,32 @@ export class InputRouter {
     } satisfies InteractionEvent
 
     handler(interactionEvent)
+  }
+
+  /**
+   * Process any time-bound input events during the main loop.
+   */
+  public tick(_elapsedSeconds: number) {
+    ;[...this.padHolds.values()].forEach(({ x, y, pressedAt }) => {
+      if (!this.inputMap) {
+        return
+      }
+
+      const handler = this.inputMap.getHandler(x, y, 'hold')
+      if (!handler) {
+        return
+      }
+
+      const interactionEvent = {
+        absoluteX: x,
+        absoluteY: y,
+        pressedAt,
+        type: 'hold',
+        x,
+        y,
+      } satisfies InteractionEvent
+
+      handler(interactionEvent)
+    })
   }
 }

@@ -1,4 +1,4 @@
-export const InteractionEventTypes = ['press', 'release'] as const
+export const InteractionEventTypes = ['hold', 'press', 'release'] as const
 export type InteractionEventType = (typeof InteractionEventTypes)[number]
 
 /**
@@ -31,6 +31,15 @@ export interface BaseInteractionEvent {
   y: number
 }
 
+export interface HoldEvent extends BaseInteractionEvent {
+  /**
+   * Time, in millseconds, at which the pad was first pressed.
+   */
+  pressedAt: number
+
+  type: 'hold'
+}
+
 export interface PressEvent extends BaseInteractionEvent {
   type: 'press'
 }
@@ -39,7 +48,7 @@ export interface ReleaseEvent extends BaseInteractionEvent {
   type: 'release'
 }
 
-export type InteractionEvent = PressEvent | ReleaseEvent
+export type InteractionEvent = HoldEvent | PressEvent | ReleaseEvent
 
 export type InteractionEventOfType<T extends InteractionEventType> =
   InteractionEvent & {

@@ -29,7 +29,6 @@ export class WebRenderer {
         container.appendChild(cell)
 
         cell.onmousedown = () => {
-          console.log('cellds', cell.dataset)
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const x = parseInt(cell.dataset.x!)
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

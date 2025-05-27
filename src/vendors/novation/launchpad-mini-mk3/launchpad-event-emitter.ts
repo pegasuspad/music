@@ -10,26 +10,23 @@ export const createLaunchpadEventEmitter = (
 ): PadEventEmitter => {
   const emitter = new EventEmitter() as PadEventEmitter
 
-  launchpad._input.on('noteoff', (note) => {
-    const y = Math.floor((note.note - 11) / 10)
-    const x = note.note - 11 - y * 10
-
-    emitter.emit('pad-up', {
-      x,
-      y,
-      type: 'pad-up',
-    })
-  })
-
   launchpad._input.on('noteon', (note) => {
     const y = Math.floor((note.note - 11) / 10)
     const x = note.note - 11 - y * 10
 
-    emitter.emit('pad-down', {
-      x,
-      y,
-      type: 'pad-down',
-    })
+    if (note.velocity === 0) {
+      emitter.emit('pad-up', {
+        x,
+        y,
+        type: 'pad-up',
+      })
+    } else {
+      emitter.emit('pad-down', {
+        x,
+        y,
+        type: 'pad-down',
+      })
+    }
   })
 
   return emitter

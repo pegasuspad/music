@@ -9,6 +9,7 @@ import type {
 export type CellHandlerKey = keyof Cell & `on${string}`
 
 const handlerKeys: Record<InteractionEventType, CellHandlerKey> = {
+  hold: 'onHold',
   press: 'onPress',
   release: 'onRelease',
 } as const
