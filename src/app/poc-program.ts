@@ -2,9 +2,11 @@ import { createFader } from '../ui/components/fader.ts'
 import { group } from '../ui/components/group.ts'
 import type { Program } from '../engine/program.ts'
 import { translate } from '../ui/transform/translate.ts'
+import { createRectangle } from '../ui/components/rectangle.ts'
 
 export const createPoc = (): Program => {
   const trackLevels = [127, 0, 0, 0]
+  let selectedTrack = 0
   let realX = 0
   let x = 0
 
@@ -13,6 +15,7 @@ export const createPoc = (): Program => {
       length: 7,
       onChange: (value) => {
         trackLevels[index] = value
+        selectedTrack = index
       },
       orientation: 'horizontal',
       value: level,
@@ -24,6 +27,20 @@ export const createPoc = (): Program => {
     getRoot: () =>
       group(
         ...faders.map((fader, index) => translate(1, 7 - index, fader())),
+        ...faders.map((_, index) =>
+          translate(
+            8,
+            7 - index,
+            createRectangle({
+              color: selectedTrack === index ? [127, 127, 127] : [0, 0, 0],
+              onPress: () => {
+                selectedTrack = index
+              },
+              width: 1,
+              height: 1,
+            }),
+          ),
+        ),
         // translate(
         //   x,
         //   0,

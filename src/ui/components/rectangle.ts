@@ -1,6 +1,7 @@
 import { logger } from '../../logger.ts'
 import type { RgbColor } from '../color.ts'
 import type { Cell, Drawable } from '../drawable.ts'
+import type { PressEvent } from '../input/input-event.ts'
 
 /**
  * Creates a `Drawable` which displays a filled rectangle with the given dimensions and color.
@@ -9,10 +10,12 @@ export const createRectangle = ({
   color,
   width,
   height,
+  onPress,
 }: {
   color: RgbColor
   width: number
   height: number
+  onPress: (event: PressEvent) => void
 }): Drawable<RgbColor> => ({
   draw: () => {
     const results: Cell<RgbColor>[] = []
@@ -22,9 +25,7 @@ export const createRectangle = ({
           value: color,
           x,
           y,
-          onPress: (event) => {
-            logger.info({ event }, 'got RECT event')
-          },
+          onPress,
         })
       }
     }
