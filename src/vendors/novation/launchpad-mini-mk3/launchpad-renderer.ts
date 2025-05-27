@@ -1,9 +1,9 @@
-import { createCanvas, type Canvas } from '../../../../ui/canvas.ts'
-import type { RgbColor } from '../../../../ui/color.ts'
-import type { Renderer } from '../../../../ui/renderer.ts'
-import type { PadLighting } from '../commands/set-led-lighting.ts'
-import type { LightingOptions } from '../model.ts'
-import type { NovationLaunchpadMiniMk3 } from '../novation-launchpad-mini-mk3.ts'
+import { createCanvas, type Canvas } from '../../../ui/canvas.ts'
+import type { RgbColor } from '../../../ui/color.ts'
+import type { Renderer } from '../../../ui/renderer.ts'
+import type { PadLighting } from './commands/set-led-lighting.ts'
+import type { LightingOptions } from './model.ts'
+import type { NovationLaunchpadMiniMk3 } from './novation-launchpad-mini-mk3.ts'
 
 export const LaunchpadPadWidth = 9
 export const LaunchpadPadHeight = 9
