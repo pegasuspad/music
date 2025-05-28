@@ -29,5 +29,24 @@ export const createLaunchpadEventEmitter = (
     }
   })
 
+  launchpad._input.on('cc', (cc) => {
+    const y = Math.floor((cc.controller - 11) / 10)
+    const x = cc.controller - 11 - y * 10
+
+    if (cc.value === 0) {
+      emitter.emit('pad-up', {
+        x,
+        y,
+        type: 'pad-up',
+      })
+    } else {
+      emitter.emit('pad-down', {
+        x,
+        y,
+        type: 'pad-down',
+      })
+    }
+  })
+
   return emitter
 }
