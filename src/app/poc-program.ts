@@ -2,75 +2,113 @@ import { createFader } from '../ui/components/fader.ts'
 import { group } from '../ui/components/group.ts'
 import type { Program } from '../engine/program.ts'
 import { translate } from '../ui/transform/translate.ts'
-import { createRectangle } from '../ui/components/rectangle.ts'
+import type { RgbColor } from '../ui/color.ts'
+import type { Drawable } from '../ui/drawable.ts'
+import { createButton } from '../ui/components/button.ts'
 
-export const createPoc = (): Program => {
-  const trackLevels = [127, 0, 0, 0]
-  let selectedTrack = 0
-  let realX = 0
-  let x = 0
+interface Track {
+  settings: {
+    color: RgbColor
+  }
+  level: number
+  muted: boolean
+}
 
-  const faders = trackLevels.map((level, index) =>
+const createTrackControls = ({
+  onLevelChanged,
+  onMuted,
+  selected = false,
+  track,
+}: {
+  onLevelChanged?: (level: number) => void
+  onMuted?: (muted: boolean) => void
+  selected?: boolean
+  track: Track
+}): (() => Drawable<RgbColor>) => {
+  const recreateFader = () =>
     createFader({
       length: 7,
       onChange: (value) => {
-        trackLevels[index] = value
-        selectedTrack = index
+        currentLevel = value
+        onLevelChanged?.(value)
       },
       orientation: 'horizontal',
-      value: level,
-      color: [127, 0, 0],
+      value: currentLevel,
+      color: currentMuted ? [64, 64, 64] : track.settings.color,
+    })
+
+  let currentMuted = track.muted
+  let currentLevel = track.level
+  let fader = recreateFader()
+
+  return () =>
+    group(
+      createButton({
+        color: currentMuted ? [25, 0, 0] : [0, 25, 0],
+        onPress: () => {
+          currentMuted = !currentMuted
+          onMuted?.(currentMuted)
+          fader = recreateFader()
+        },
+      }),
+      translate(1, 0, fader()),
+    )
+}
+
+const TrackColors: RgbColor[] = [
+  [67, 103, 125],
+  [85, 127, 97],
+  [100, 80, 127],
+  [127, 63, 51],
+]
+
+const tracks = TrackColors.map((color) => ({
+  settings: {
+    color,
+  },
+  level: 127,
+  muted: false,
+}))
+
+export const createPoc = (): Program => {
+  let selectedTrack = 0
+
+  const trackControls = tracks.map((track, index) =>
+    createTrackControls({
+      track,
+      onLevelChanged: (level) => {
+        track.level = level
+        selectedTrack = index
+      },
+      onMuted: (muted) => {
+        track.muted = muted
+        selectedTrack = index
+      },
+      selected: selectedTrack === index,
     }),
   )
 
   return {
     getRoot: () =>
       group(
-        ...faders.map((fader, index) => translate(1, 7 - index, fader())),
-        ...faders.map((_, index) =>
-          translate(
-            8,
-            7 - index,
-            createRectangle({
-              color: selectedTrack === index ? [127, 127, 127] : [0, 0, 0],
-              onPress: () => {
-                selectedTrack = index
-              },
-              width: 1,
-              height: 1,
-            }),
+        ...trackControls.map((trackControls, index) =>
+          group(
+            translate(0, 7 - index, trackControls()),
+            translate(
+              8,
+              7 - index,
+              createButton({
+                color:
+                  selectedTrack === index ?
+                    tracks[index].settings.color
+                  : [0, 0, 0],
+                onPress: () => {
+                  selectedTrack = index
+                },
+              }),
+            ),
           ),
         ),
-        // translate(
-        //   x,
-        //   0,
-        //   group(
-        //     translate(
-        //       -1,
-        //       2,
-        //       createRectangle({
-        //         color: [0, 127, 0],
-        //         width: 3,
-        //         height: 4,
-        //       }),
-        //     ),
-        //     translate(
-        //       0,
-        //       0,
-        //       createRectangle({
-        //         width: 1,
-        //         height: 8,
-        //         color: [64, 0, 0],
-        //       }),
-        //     ),
-        //     createButton([0, 0, 127]),
-        //     translate(0, 7, createButton([0, 0, 127])),
-        //   ),
-        // ),
       ),
-    tick: (elapsedSeconds: number) => {
-      realX = (realX + elapsedSeconds * 4.5) % 9
-      x = Math.round(realX)
-    },
   }
 }

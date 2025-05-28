@@ -126,9 +126,9 @@ export const createFader = ({
     const fullLitCells = Math.floor(currentValue / cellSize)
     const partialIntensity = Math.max(
       (currentValue - fullLitCells * cellSize) / cellSize,
-      0.15,
+      0.07,
     )
-    const offColor: RgbColor = scaleColor(color, 0.15)
+    const offColor: RgbColor = scaleColor(color, 0.07)
     const partialColor: RgbColor = scaleColor(color, partialIntensity)
 
     return {
