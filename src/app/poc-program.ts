@@ -27,8 +27,11 @@ export const createPoc = (): Program => {
   }
 
   const channelLevelScreen = createChannelLevelScreen({
-    channels,
-    onChannelSelected: selectChannel,
+    channels: channels.map((channel) => ({ ...channel })),
+    onChannelUpdated: (index, channel) => {
+      channels[index] = channel
+      selectChannel(index)
+    },
     selectedChannel,
   })
 
@@ -37,7 +40,7 @@ export const createPoc = (): Program => {
       group(
         channelLevelScreen(),
         createGlobalNav({
-          channels,
+          channels: channels.map((channel) => ({ ...channel })),
           onChannelSelected: selectChannel,
           selectedChannel,
         }),

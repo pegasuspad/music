@@ -7,23 +7,21 @@ import { createChannelControlRow } from './channel-control-row.ts'
 
 export const createChannelLevelScreen = ({
   channels,
-  onChannelSelected,
+  onChannelUpdated,
   selectedChannel,
 }: {
   channels: Channel[]
-  onChannelSelected?: (index: number) => void
+  onChannelUpdated?: (index: number, channel: Channel) => void
   selectedChannel: number
 }): (() => Drawable<RgbColor>) => {
   const channelControlRows = channels.map((channel, index) =>
     createChannelControlRow({
       channel,
       onLevelChanged: (level) => {
-        channel.level = level
-        onChannelSelected?.(index)
+        onChannelUpdated?.(index, { ...channel, level })
       },
       onMuted: (muted) => {
-        channel.muted = muted
-        onChannelSelected?.(index)
+        onChannelUpdated?.(index, { ...channel, muted })
       },
       selected: selectedChannel === index,
     }),
