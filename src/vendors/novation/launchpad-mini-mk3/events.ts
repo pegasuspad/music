@@ -1,7 +1,5 @@
-import type {
-  LaunchpadCommand,
-  LaunchpadCommandDataType,
-} from './commands/index.ts'
+import type { IdentityResponseMessage } from '../../../midi/sysex-message-parser.ts'
+import type { LaunchpadCommand } from './commands/index.ts'
 
 export interface LaunchpadEvent {
   /**
@@ -46,22 +44,41 @@ export interface PadLongPressEvent extends PadEvent {
   eventType: 'pad-long-press'
 }
 
-export interface ReadbackEvent<C extends LaunchpadCommand = LaunchpadCommand>
-  extends LaunchpadEvent {
-  /**
-   * Which command the readback data applies to.
-   */
-  command: C
+/**
+ * Event generated when a universal SysEx "Get Identity Response" message is received.
+ */
+export interface IdentityResponseEvent extends LaunchpadEvent {
+  eventType: 'identity-response'
 
   /**
-   * The data sent by the Launchpad.
+   * Parsed identity response.
    */
-  data: LaunchpadCommandDataType<C>
-
-  eventType: 'readback'
+  message: IdentityResponseMessage
 }
 
-export interface LaunchpadEventMap {
+/**
+ * Event generated when a Launchpad command generates readback data.
+ */
+export interface ReadbackEvent extends LaunchpadEvent {
+  /**
+   * Name of the command which generated the readback data.
+   */
+  command: LaunchpadCommand
+
+  /**
+   * Type of event.
+   */
+  eventType: 'readback'
+
+  /**
+   * Data which was sent as the readback payload.
+   */
+  data: number[]
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type LaunchpadEventMap = {
+  'identity-response': (event: IdentityResponseEvent) => void
   'pad-down': (event: PadDownEvent) => void
   'pad-long-press': (event: PadLongPressEvent) => void
   'pad-up': (event: PadUpEvent) => void

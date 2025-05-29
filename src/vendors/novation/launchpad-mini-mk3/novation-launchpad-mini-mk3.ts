@@ -1,5 +1,4 @@
-import isEqual from 'lodash-es/isEqual.js'
-import { MidiDevice } from '../../../devices/midi-device.ts'
+import { MidiDevice } from '../../../midi/midi-device.ts'
 import { get } from 'lodash-es'
 import { logger } from '../../../logger.ts'
 import {
@@ -12,23 +11,25 @@ import {
   type LaunchpadCommandDataType,
 } from './commands/index.ts'
 import type { Sysex } from 'easymidi'
-import { tryParseReadbackMessage } from './try-parse-readback-message.ts'
+import { parseSysexMessage } from './sysex-messages.ts'
+import { parseSysex } from '../../../midi/sysex-message-parser.ts'
+import type { TypedEventEmitter } from '../../../typed-event-emitter.ts'
+import EventEmitter from 'node:events'
+import type {
+  IdentityResponseEvent,
+  LaunchpadEventMap,
+  ReadbackEvent,
+} from './events.ts'
 
-const DeviceInquiryHeader = [
-  0x7e, 0x00, 0x06, 0x02, 0x00, 0x20, 0x29, 0x13, 0x01, 0x00, 0x00,
-]
+export type LaunchpadEventEmitter = TypedEventEmitter<LaunchpadEventMap>
 
 const log = logger.child({}, { msgPrefix: '[LAUNCHPAD] ' })
 
-type ReadbackHandlerFn = (data: {
-  command: number
-  data: number[]
-  raw: number[]
-}) => boolean
-
 export class NovationLaunchpadMiniMk3 {
   private _initializationLogsDisplayed = false
+  private _events = new EventEmitter() as LaunchpadEventEmitter
   public readonly _input: MidiDevice
+  private _inputInitialized = false
   private _output: MidiDevice
 
   constructor({
@@ -57,46 +58,17 @@ export class NovationLaunchpadMiniMk3 {
   }
 
   /**
-   * List of functions waiting for SysEx readback data. Each time we receive a SysEx message, all handlers will be
-   * called. If the handler returns `true` (indicating it processed the expected readback), then it will be removed from
-   * the list.
-   */
-  private _readbackHandlers: ReadbackHandlerFn[] = []
-
-  private handleReadbacks(data: number[]) {
-    const parsed =
-      data.length > 8 ?
-        {
-          command: data[6],
-          data: data.slice(7, -1),
-          raw: data.slice(1, -1),
-        }
-      : {
-          command: 0,
-          data: [],
-          raw: data.length >= 2 ? data.slice(1, -1) : data,
-        }
-
-    const completed: ReadbackHandlerFn[] = []
-    this._readbackHandlers.forEach((handler) => {
-      if (handler(parsed)) {
-        completed.push(handler)
-      }
-    })
-
-    this._readbackHandlers = this._readbackHandlers.filter(
-      (candidate) => !completed.includes(candidate),
-    )
-  }
-
-  /**
    * Callback which is invoked when the Launchpad's input device is (re)connected to USB.
    */
   private async onInputConnect(): Promise<void> {
     log.info(`Connected: ${this._input.name}`)
-    this._input.on('sysex', (sysex) => {
-      this.onSysEx(sysex)
-    })
+
+    if (!this._inputInitialized) {
+      this._input.on('sysex', (sysex) => {
+        this.onSysEx(sysex)
+      })
+      this._inputInitialized = true
+    }
 
     await this.logDeviceData()
   }
@@ -125,32 +97,51 @@ export class NovationLaunchpadMiniMk3 {
    * @param data
    */
   private onSysEx({ bytes }: Sysex) {
-    const result = tryParseReadbackMessage(bytes)
-    if (!result.success) {
+    const result = parseSysex(bytes)
+    if (!result.valid) {
       log.warn(
         { message: bytes.map((b) => `${b}`).join(', ') },
-        `Received unrecognized SysEx message (${bytes.length} bytes)`,
+        `Received invalid SysEx message (${bytes.length} bytes)`,
       )
-      return
-    }
-
-    const { command: code, data } = result
-    const command = lookupCommand(code)
-    if (command === undefined) {
-      log.warn(
-        { message: bytes.map((b) => `${b}`).join(', ') },
-        `Received SysEx message with unrecognized command code: ${code}`,
-      )
+    } else if (result.message.source === 'universal') {
+      // handle universal message
+      if (result.message.type === 'identity-response') {
+        this._events.emit('identity-response', {
+          eventType: 'identity-response',
+          message: result.message,
+        })
+      } else {
+        logger.warn(
+          { message: result.message },
+          `Received unexpected universal SysEx message of type: ${result.message.type}`,
+        )
+      }
     } else {
-      log.debug(
-        {
-          command: code,
-          data,
-        },
-        `Received SysEx readback message for command: ${code}`,
-      )
+      const message = parseSysexMessage(result.message)
+      if (message.type === 'unknown') {
+        log.warn(
+          { message: bytes.map((b) => `${b}`).join(', ') },
+          `Received unrecognized SysEx message (${bytes.length} bytes)`,
+        )
+      } else {
+        const command = lookupCommand(message.command)
+        log.info(
+          `Received SysEx readback message for command: ${command?.name ?? message.command}`,
+        )
 
-      // this.emit(command.name, command.fromBytes(data))
+        if (command === undefined) {
+          log.warn(
+            { message: bytes.map((b) => `${b}`).join(', ') },
+            `Received SysEx message with unrecognized command code: ${message.command}`,
+          )
+        } else {
+          this._events.emit('readback', {
+            command: command.name as ReadbackEvent['command'],
+            data: message.payload,
+            eventType: 'readback',
+          })
+        }
+      }
     }
   }
 
@@ -178,64 +169,24 @@ export class NovationLaunchpadMiniMk3 {
     }
   }
 
-  /**
-   * Sends a readback sysex message, returning the response. Will reject if the response is not received within the
-   * specified timeout.
-   * @param message
-   */
-  private readback(
-    message: number[],
-    handler: ReadbackHandlerFn,
-    timeoutMs = 1000,
-  ): Promise<number[]> {
-    return new Promise<number[]>((_, reject) => {
-      const timeout = setTimeout(() => {
-        reject(
-          new Error(
-            `Timeout exceeded waiting for SysEx readback. [${timeoutMs}]`,
-          ),
-        )
-      }, timeoutMs)
-
-      this._readbackHandlers.push((data) => {
-        const result = handler(data)
-        if (result) {
-          clearTimeout(timeout)
-        }
-
-        return result
-      })
-
-      this._output.send('sysex', message)
-    })
+  public get events(): Omit<LaunchpadEventEmitter, 'emit'> {
+    return this._events
   }
 
   public getFirmwareVersion(timeoutMs = 250): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       const timeout = setTimeout(() => {
+        this._events.off('identity-response', handleResponse)
         reject(
           new Error(`Timeout waiting for device version. [${timeoutMs} ms]`),
         )
       }, timeoutMs)
 
-      this._readbackHandlers.push(({ raw }) => {
-        const lengthMatches = raw.length === DeviceInquiryHeader.length + 4
-        const headerMatches = isEqual(
-          DeviceInquiryHeader,
-          raw.slice(0, DeviceInquiryHeader.length),
-        )
-        if (lengthMatches && headerMatches) {
-          clearTimeout(timeout)
-
-          resolve(
-            Number.parseInt(raw.slice(DeviceInquiryHeader.length).join(''), 10),
-          )
-          return true
-        }
-
-        return false
-      })
-
+      const handleResponse = ({ message }: IdentityResponseEvent) => {
+        clearTimeout(timeout)
+        resolve(Number.parseInt(message.version.join(''), 10))
+      }
+      this._events.on('identity-response', handleResponse)
       this._output.send('sysex', [0xf0, 0x7e, 0x7f, 0x06, 0x01, 0xf7])
     })
   }
