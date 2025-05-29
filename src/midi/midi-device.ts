@@ -18,7 +18,8 @@ type AllEvents = {
 } & MidiEventMap
 
 export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<AllEvents>) {
-  private device?: easymidi.Input | easymidi.Output
+  private input?: easymidi.Input
+  private output?: easymidi.Output
   private log: pino.Logger
   private _state: 'connected' | 'disconnected' | 'error' = 'disconnected'
   private createDeviceHandle: ReturnType<typeof setTimeout> | undefined
@@ -26,7 +27,7 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
 
   constructor(
     public readonly name: string,
-    private direction: 'input' | 'output' = 'input',
+    private direction: 'duplex' | 'input' | 'output' = 'duplex',
     pollIntervalMs = 100,
   ) {
     super()
@@ -57,10 +58,20 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
 
   private tryCreateDevice() {
     try {
-      const DeviceClass =
-        this.direction === 'input' ? easymidi.Input : easymidi.Output
-      this.device = new DeviceClass(this.name)
-      this.hookAllEvents()
+      if (
+        ['duplex', 'input'].includes(this.direction) &&
+        this.input === undefined
+      ) {
+        this.input = new easymidi.Input(this.name)
+        this.hookAllEvents()
+      }
+
+      if (
+        ['duplex', 'output'].includes(this.direction) &&
+        this.output === undefined
+      ) {
+        this.output = new easymidi.Output(this.name)
+      }
 
       this.emit('connected')
     } catch (_) {
@@ -79,7 +90,12 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
     }
 
     // easymidi reconnects if the device is already created, so we just set our connection state
-    if (this.device === undefined) {
+    const needsInputConnect =
+      this.input === undefined && ['duplex', 'input'].includes(this.direction)
+    const needsOutputConnect =
+      this.output === undefined && ['duplex', 'output'].includes(this.direction)
+
+    if (needsInputConnect || needsOutputConnect) {
       this.tryCreateDevice()
     } else {
       this.emit('connected')
@@ -104,17 +120,16 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
 
   /** for input devices only */
   private hookAllEvents() {
-    if (this.direction !== 'input') {
+    if (this.direction === 'output' || this.input === undefined) {
       return
     }
 
-    const input = this.device as easymidi.Input
     for (const event of MidiEvents) {
       const listener = ((...args: Parameters<MidiEventMap[typeof event]>) => {
         this.emit(event, ...args)
       }) as MidiEventMap[typeof event]
 
-      input.on(event, listener)
+      this.input.on(event, listener)
     }
   }
 
@@ -147,8 +162,8 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
     evt: E,
     arg: MidiParameterMap[E],
   ) => {
-    if (this.direction === 'output' && this.device) {
-      const output = this.device as easymidi.Output
+    if (this.output) {
+      const output = this.output
       output.send(evt, arg)
     }
   }
