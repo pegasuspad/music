@@ -99,7 +99,6 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
       clearTimeout(this.createDeviceHandle)
     }
 
-    this.device = undefined
     this.emit('disconnected')
   }
 

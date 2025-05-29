@@ -1,5 +1,5 @@
 import type { Renderer } from '../ui/renderer.ts'
-import type { PadEventEmitter } from '../devices/pad-event.ts'
+import type { PadEventEmitter } from '../midi/pad-event.ts'
 import type { RgbColor } from '../ui/color.ts'
 import { createCanvas } from '../ui/canvas.ts'
 import { InputRouter } from '../ui/input/input-router.ts'

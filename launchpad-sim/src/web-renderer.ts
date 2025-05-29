@@ -3,7 +3,7 @@ import { type RgbColor } from '../../src/ui/color.ts'
 import {
   type PadEventEmitter,
   type PadEventMap,
-} from '../../src/devices/pad-event.ts'
+} from '../../src/midi/pad-event.ts'
 import { Events } from '../../src/typed-event-emitter.ts'
 
 export class WebRenderer {

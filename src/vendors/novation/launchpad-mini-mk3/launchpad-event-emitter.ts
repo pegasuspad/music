@@ -1,5 +1,5 @@
 import EventEmitter from 'node:events'
-import type { PadEventEmitter } from '../../../devices/pad-event.ts'
+import type { PadEventEmitter } from '../../../midi/pad-event.ts'
 import type { NovationLaunchpadMiniMk3 } from './novation-launchpad-mini-mk3.ts'
 
 /**

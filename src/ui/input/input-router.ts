@@ -1,4 +1,4 @@
-import type { PadEvent } from '../../devices/pad-event.ts'
+import type { PadEvent } from '../../midi/pad-event.ts'
 import { currentTimeMillis } from '../../engine/timer.ts'
 import type { InteractionEvent, InteractionEventType } from './input-event.ts'
 import { InputMap } from './input-map.ts'
