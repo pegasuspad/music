@@ -63,6 +63,7 @@ export const loop = async ({
     render: () => {
       render(inputRouter)
     },
+    targetFps: 20,
     update: (elapsedSeconds) => {
       inputRouter.tick(elapsedSeconds)
       program.tick?.(elapsedSeconds)
