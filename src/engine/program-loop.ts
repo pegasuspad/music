@@ -7,6 +7,13 @@ import { InputMap } from '../ui/input/input-map.ts'
 import type { Program } from './program.ts'
 import { startLoop } from './main-loop.ts'
 
+const normalize = (color: RgbColor): RgbColor => {
+  color[0] = Math.round(color[0])
+  color[1] = Math.round(color[1])
+  color[2] = Math.round(color[2])
+  return color
+}
+
 export const loop = async ({
   events,
   program,
@@ -35,7 +42,7 @@ export const loop = async ({
     const cells = scene.draw()
     inputRouter.setMap(InputMap.fromCells(cells, canvas.width, canvas.height))
     cells.forEach((cell) => {
-      canvas.set(cell.x, cell.y, cell.value)
+      canvas.set(cell.x, cell.y, normalize(cell.value))
     })
 
     renderer.render(canvas)

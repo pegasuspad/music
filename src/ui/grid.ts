@@ -1,3 +1,5 @@
+import { isEqual } from 'lodash-es'
+
 export type Cleared = null
 
 /**
@@ -94,7 +96,7 @@ export class Grid<T> {
       otherValue: T | undefined,
       thisValue: T | undefined,
     ): T | Cleared | undefined => {
-      if (otherValue === thisValue) {
+      if (isEqual(otherValue, thisValue)) {
         return undefined
       } else if (thisValue !== undefined) {
         return thisValue

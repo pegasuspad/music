@@ -33,6 +33,18 @@ export class LaunchpadRenderer implements Renderer<RgbColor> {
 
   public render(canvas: Canvas<RgbColor>) {
     const diff = canvas.getData().diff(this.lastCanvas.getData())
+
+    // const items = diff.map(
+    //   (x, y, value) => `(${x}, ${y})=>[${value?.join(',')}]`,
+    // )
+    // logger.info(
+    //   {
+    //     length: items.length,
+    //     items,
+    //   },
+    //   'Canvas diff detail.',
+    // )
+
     const padSettings = diff.map((x, y, color) => {
       return color === null ?
           turnPadOff(x, y)
@@ -46,9 +58,11 @@ export class LaunchpadRenderer implements Renderer<RgbColor> {
           }
     })
 
-    void this.launchpad.sendCommand('set-led-lighting', {
-      pads: padSettings,
-    })
+    if (padSettings.length > 0) {
+      void this.launchpad.sendCommand('set-led-lighting', {
+        pads: padSettings,
+      })
+    }
 
     this.lastCanvas = canvas
   }
