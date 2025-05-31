@@ -1,4 +1,3 @@
-import { logger } from '../../logger.ts'
 import type { RgbColor } from '../color.ts'
 import type { Cell, Drawable } from '../drawable.ts'
 import type { PressEvent } from '../input/input-event.ts'
@@ -15,7 +14,7 @@ export const createRectangle = ({
   color: RgbColor
   width: number
   height: number
-  onPress: (event: PressEvent) => void
+  onPress?: (event: PressEvent) => void
 }): Drawable<RgbColor> => ({
   draw: () => {
     const results: Cell<RgbColor>[] = []

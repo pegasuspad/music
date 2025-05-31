@@ -1,9 +1,9 @@
-import { createButton } from '../ui/components/button.ts'
-import { group } from '../ui/components/group.ts'
-import { translate } from '../ui/transform/translate.ts'
-import type { ChannelState } from './model.ts'
+import { createButton } from '../../ui/components/button.ts'
+import { group } from '../../ui/components/group.ts'
+import { translate } from '../../ui/transform/translate.ts'
+import type { ChannelState } from '../model.ts'
 
-export const createGlobalNav = ({
+export const createSideTrackSelector = ({
   channels = [],
   onChannelSelected,
   selectedChannelId = 0,

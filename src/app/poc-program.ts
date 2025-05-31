@@ -1,9 +1,13 @@
 import { group } from '../ui/components/group.ts'
 import type { Program } from '../engine/program.ts'
 import { createChannelLevelScreen } from './channel-level-screen/channel-level-screen.ts'
-import { createGlobalNav } from './global-nav.ts'
 import type { MidiDevice } from '../midi/midi-device.ts'
 import { LaunchpadController } from './controller.ts'
+import { createSideTrackSelector } from './global-nav/side-track-selector.ts'
+import { createTopScreenSelector } from './global-nav/top-screen-selector.ts'
+import { createSoundSelectScreen } from './sound-select-screen/sound-select-screen.ts'
+import type { Cell, Drawable } from '../ui/drawable.ts'
+import type { RgbColor } from '../ui/color.ts'
 
 export const createPoc = (synthesizer: MidiDevice): Program => {
   const controller = new LaunchpadController(synthesizer, 8)
@@ -11,6 +15,7 @@ export const createPoc = (synthesizer: MidiDevice): Program => {
   controller.selectSound(0, { program: 73 })
   controller.selectSound(1, { program: 73 })
   let selectedChannelId = controller.channels[0].id
+  let selectedScreenId = 0
 
   // play notes when level changed?
   //
@@ -28,7 +33,7 @@ export const createPoc = (synthesizer: MidiDevice): Program => {
   //   })
   // }, 250)
 
-  const channelLevelScreen = createChannelLevelScreen({
+  const channelLevelScreenFactory = createChannelLevelScreen({
     channels: [...controller.channels],
     onLevelChanged: (channelId, level) => {
       controller.setLevel(channelId, level)
@@ -41,16 +46,39 @@ export const createPoc = (synthesizer: MidiDevice): Program => {
     selectedChannelId,
   })
 
+  const makeSoundSelectScreen = () => createSoundSelectScreen()
+
+  const makeSelectedScreen = () => {
+    switch (selectedScreenId) {
+      case 0:
+        return channelLevelScreenFactory
+      case 1:
+        return makeSoundSelectScreen
+      default:
+        return () =>
+          ({
+            draw: () => [] as Cell<RgbColor>[],
+          }) satisfies Drawable<RgbColor>
+    }
+  }
+
   return {
     getRoot: () =>
       group(
-        channelLevelScreen(),
-        createGlobalNav({
+        makeSelectedScreen()(),
+        createSideTrackSelector({
           channels: controller.channels,
           onChannelSelected: (channelId) => {
             selectedChannelId = channelId
           },
           selectedChannelId,
+        }),
+        createTopScreenSelector({
+          numberOfScreens: 2,
+          onScreenSelected: (id) => {
+            selectedScreenId = id
+          },
+          selectedScreenId,
         }),
       ),
   }
