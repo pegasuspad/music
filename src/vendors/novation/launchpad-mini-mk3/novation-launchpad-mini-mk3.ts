@@ -20,6 +20,7 @@ import type {
   LaunchpadEventMap,
   ReadbackEvent,
 } from './events.ts'
+import { setInterval } from 'node:timers'
 
 export type LaunchpadEventEmitter = TypedEventEmitter<LaunchpadEventMap>
 
@@ -31,6 +32,9 @@ export class NovationLaunchpadMiniMk3 {
   public readonly _input: MidiDevice
   private _inputInitialized = false
   private _output: MidiDevice
+
+  private _statsStartTime = 0
+  private _bytesSent = 0
 
   constructor({
     inputDeviceName = 'Launchpad Mini MK3 LPMiniMK3 MIDI Out',
@@ -55,6 +59,17 @@ export class NovationLaunchpadMiniMk3 {
     this._output.on('disconnected', () => {
       this.onDisconnect(this._output.name)
     })
+
+    setInterval(() => {
+      this._events.emit('midi-stats', {
+        bytesSent: this._bytesSent,
+        eventType: 'midi-stats',
+        interval: Date.now() - this._statsStartTime,
+      })
+      this._statsStartTime = Date.now()
+      this._bytesSent = 0
+    }, 15000)
+    this._statsStartTime = Date.now()
   }
 
   /**
@@ -217,6 +232,9 @@ export class NovationLaunchpadMiniMk3 {
       { data, message: message.map((b) => `${b}`).join(', ') },
       `Sending command: ${command}`,
     )
+
+    this._bytesSent += message.length
+
     this._output.send('sysex', message)
     return Promise.resolve()
   }

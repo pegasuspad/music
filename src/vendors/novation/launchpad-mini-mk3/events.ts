@@ -56,6 +56,20 @@ export interface IdentityResponseEvent extends LaunchpadEvent {
   message: IdentityResponseMessage
 }
 
+export interface MidiStatsEvent extends LaunchpadEvent {
+  eventType: 'midi-stats'
+
+  /**
+   * Number of bytes sent over MIDI during the interval.
+   */
+  bytesSent: number
+
+  /**
+   * Length of time over which these stats were collected.
+   */
+  interval: number
+}
+
 /**
  * Event generated when a Launchpad command generates readback data.
  */
@@ -79,6 +93,7 @@ export interface ReadbackEvent extends LaunchpadEvent {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type LaunchpadEventMap = {
   'identity-response': (event: IdentityResponseEvent) => void
+  'midi-stats': (event: MidiStatsEvent) => void
   'pad-down': (event: PadDownEvent) => void
   'pad-long-press': (event: PadLongPressEvent) => void
   'pad-up': (event: PadUpEvent) => void
