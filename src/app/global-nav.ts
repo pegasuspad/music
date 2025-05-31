@@ -1,16 +1,16 @@
 import { createButton } from '../ui/components/button.ts'
 import { group } from '../ui/components/group.ts'
 import { translate } from '../ui/transform/translate.ts'
-import type { Channel } from './model.ts'
+import type { ChannelState } from './model.ts'
 
 export const createGlobalNav = ({
   channels = [],
   onChannelSelected,
-  selectedChannel = 0,
+  selectedChannelId = 0,
 }: {
-  channels?: Channel[]
+  channels?: readonly ChannelState[]
   onChannelSelected?: (index: number) => void
-  selectedChannel?: number
+  selectedChannelId?: number
 }) =>
   group(
     ...channels.map((channel, index) =>
@@ -18,9 +18,9 @@ export const createGlobalNav = ({
         8,
         7 - index,
         createButton({
-          color: selectedChannel === index ? channel.settings.color : [0, 0, 0],
+          color: selectedChannelId === channel.id ? channel.color : [0, 0, 0],
           onPress: () => {
-            onChannelSelected?.(index)
+            onChannelSelected?.(channel.id)
           },
         }),
       ),

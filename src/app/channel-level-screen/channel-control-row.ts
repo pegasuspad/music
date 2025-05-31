@@ -4,7 +4,7 @@ import { createFader } from '../../ui/components/fader.ts'
 import { group } from '../../ui/components/group.ts'
 import type { Drawable } from '../../ui/drawable.ts'
 import { translate } from '../../ui/transform/translate.ts'
-import type { Channel } from '../model.ts'
+import type { ChannelState } from '../model.ts'
 
 export const createChannelControlRow = ({
   onLevelChanged,
@@ -14,7 +14,7 @@ export const createChannelControlRow = ({
   onLevelChanged?: (level: number) => void
   onMuted?: (muted: boolean) => void
   selected?: boolean
-  channel: Channel
+  channel: ChannelState
 }): (() => Drawable<RgbColor>) => {
   const recreateFader = () =>
     createFader({
@@ -25,7 +25,7 @@ export const createChannelControlRow = ({
       },
       orientation: 'horizontal',
       value: currentLevel,
-      color: currentMuted ? [64, 64, 64] : channel.settings.color,
+      color: currentMuted ? [64, 64, 64] : channel.color,
     })
 
   let currentMuted = channel.muted
