@@ -4,6 +4,7 @@ import type { RgbColor } from '../ui/color.ts'
 import type { MidiChannel } from './model.ts'
 import { logger } from '../logger.ts'
 import { normalizeMidiByte } from '../midi/normalize-midi-byte.ts'
+import { channel } from 'diagnostics_channel'
 
 export class Channel {
   /**
@@ -52,17 +53,36 @@ export class Channel {
   /**
    * Selects the sound played by notes on this channel.
    * @param sound The specific sound to select.
+   * @param sound.bank MIDI bank LSB
    * @param sound.program Program change number to select.
    */
   public selectSound({
+    bank = 0,
     program,
   }: {
+    /**
+     * MIDI bank select LSB to select as the sound variation.
+     * @defaultValue 0
+     */
+    bank?: number
+
     /**
      * Value of the MIDI program change message to use for sound selection.
      */
     program: number
   }) {
     this._log.info({ program }, `Sent program change: ${program}`)
+
+    this._device.send('cc', {
+      channel: this.midiChannel,
+      controller: 0,
+      value: 121,
+    })
+    this._device.send('cc', {
+      channel: this.midiChannel,
+      controller: 32,
+      value: bank,
+    })
 
     this._device.send('program', {
       channel: this.midiChannel,

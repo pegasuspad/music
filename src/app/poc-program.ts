@@ -46,7 +46,7 @@ export const createPoc = (synthesizer: MidiDevice): Program => {
     selectedChannelId,
   })
 
-  const makeSoundSelectScreen = () => createSoundSelectScreen()
+  const makeSoundSelectScreen = createSoundSelectScreen()
 
   const makeSelectedScreen = () => {
     switch (selectedScreenId) {
