@@ -9,15 +9,24 @@ import { createSoundSelectScreen } from './sound-select-screen/sound-select-scre
 import type { Cell, Drawable } from '../ui/drawable.ts'
 import type { RgbColor } from '../ui/color.ts'
 import type { Instrument, InstrumentFamily } from '../midi/gm2.ts'
-import { exec } from 'node:child_process'
 import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { logger } from '../logger.ts'
+import { speak } from './speak.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 
-export const createPoc = (
+export const createSoundPickerProgram = (
   launchpad: NovationLaunchpadMiniMk3,
   synthesizer: MidiDevice,
+  {
+    speakInstrumentNames = true,
+  }: {
+    /**
+     * Whether to speak instrument names as they are selected or not.
+     * @defaultValue true
+     */
+    speakInstrumentNames?: boolean
+  } = {},
 ): Program => {
   const controller = new LaunchpadController(synthesizer, 2)
   controller.stopAllSound()
@@ -69,7 +78,9 @@ export const createPoc = (
       selectedFamilies[selectedChannelId] = family
     },
     onInstrumentSelected: (instrument) => {
-      exec(`say ${JSON.stringify(instrument.name)}`)
+      if (speakInstrumentNames) {
+        speak(instrument.name)
+      }
 
       selectedInstruments[selectedChannelId] = instrument
       controller.selectSound(selectedChannelId, {

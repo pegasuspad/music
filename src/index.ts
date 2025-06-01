@@ -1,10 +1,10 @@
 import { NovationLaunchpadMiniMk3 } from './vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { LaunchpadRenderer } from './vendors/novation/launchpad-mini-mk3/launchpad-renderer.ts'
-import { createPoc } from './app/poc-program.ts'
+import { createSoundPickerProgram } from './app/sound-picker-program.ts'
 import { loop } from './engine/program-loop.ts'
 import { createLaunchpadEventEmitter } from './vendors/novation/launchpad-mini-mk3/launchpad-event-emitter.ts'
-import { MidiDevice } from './midi/midi-device.ts'
 import { logger } from './logger.ts'
+import { MidiDevice } from './midi/midi-device.ts'
 
 const main = async (): Promise<void> => {
   const launchpad = new NovationLaunchpadMiniMk3()
@@ -27,7 +27,7 @@ const main = async (): Promise<void> => {
 
   await loop({
     events,
-    program: createPoc(launchpad, fp30x),
+    program: createSoundPickerProgram(launchpad, fp30x),
     renderer,
   })
 }
