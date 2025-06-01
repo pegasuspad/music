@@ -32,11 +32,7 @@ export class LaunchpadRenderer implements Renderer<RgbColor> {
     launchpad.events.on('mode-changed', (event) => {
       if (event.mode === 'programmer') {
         logger.info('Detected mode change. Redrawing whole canvas.')
-
-        this.lastCanvas = createCanvas<RgbColor>(
-          LaunchpadPadWidth,
-          LaunchpadPadHeight,
-        )
+        this.reset()
       }
     })
   }

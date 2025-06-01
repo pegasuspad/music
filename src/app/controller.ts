@@ -3,6 +3,7 @@ import type { MidiDevice } from '../midi/midi-device.ts'
 import type { RgbColor } from '../ui/color.ts'
 import type { MidiChannel } from './model.ts'
 import { Channel } from './channel.ts'
+import type { Note } from 'easymidi'
 
 const _log = logger.child({}, { msgPrefix: '[APP] ' })
 
@@ -32,6 +33,16 @@ export class LaunchpadController {
   private _channels: Channel[]
 
   /**
+   * Bound listener for 'noteoff' events, which can be added and removed to a device as needed.
+   */
+  private _noteOffListener = this.handleNoteOff.bind(this)
+
+  /**
+   * Bound listener for 'noteon' events, which can be added and removed to a device as needed.
+   */
+  private _noteOnListener = this.handleNoteOn.bind(this)
+
+  /**
    * Creates a new LaunchpadController.
    * @param instrument MIDI device being controlled by this instance.
    * @param channelCount Number of channels to manage. Defaults to four.
@@ -50,34 +61,48 @@ export class LaunchpadController {
       { length: channelCount },
       (_, i) => new Channel(this.instrument, MidiChannels[i], ChannelColors[i]),
     )
-
-    this.hookInstrumentEvents()
-  }
-
-  private hookInstrumentEvents() {
-    this.instrument.on('noteon', (note) => {
-      this.channels.forEach((channel) => {
-        if (!channel.muted) {
-          this.instrument.send('noteon', {
-            ...note,
-            channel: channel.midiChannel,
-          })
-        }
-      })
-    })
-
-    this.instrument.on('noteoff', (note) => {
-      this.channels.forEach((channel) => {
-        this.instrument.send('noteoff', {
-          ...note,
-          channel: channel.midiChannel,
-        })
-      })
-    })
   }
 
   private channelById(id: number): Channel | undefined {
     return this._channels.find((channel) => channel.id === id)
+  }
+
+  private handleNoteOff(note: Note) {
+    this.channels.forEach((channel) => {
+      this.instrument.send('noteoff', {
+        ...note,
+        channel: channel.midiChannel,
+      })
+    })
+  }
+
+  private handleNoteOn(note: Note) {
+    this.channels.forEach((channel) => {
+      if (!channel.muted) {
+        this.instrument.send('noteon', {
+          ...note,
+          channel: channel.midiChannel,
+        })
+      }
+    })
+  }
+
+  /**
+   * Initialize the controller. This method initiates the instrument connection, causing the controller to begin
+   * receiving and sending audio messages.
+   */
+  public initialize() {
+    this.stopAllSound()
+
+    this.instrument.on('noteon', this._noteOnListener)
+    this.instrument.on('noteoff', this._noteOffListener)
+  }
+
+  public shutdown() {
+    this.stopAllSound()
+
+    this.instrument.off('noteon', this._noteOnListener)
+    this.instrument.off('noteoff', this._noteOffListener)
   }
 
   public get channels(): readonly Readonly<Channel>[] {

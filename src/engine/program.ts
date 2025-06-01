@@ -12,7 +12,7 @@ export interface Program {
   getRoot(): Drawable<RgbColor>
 
   /**
-   * Function which performs optional initialization for this program.
+   * Callback which performs optional initialization for this program.
    */
   initialize?: () => Promise<void> | void
 
@@ -20,6 +20,11 @@ export interface Program {
    * Callback which is invoked whenever the `Program` state changes and should be rerendered.
    */
   onUpdate?(callback: () => void): void
+
+  /**
+   * Callback which performs optional cleanup (deregister event handlers, etc.) for this program.
+   */
+  shutdown?: () => Promise<void> | void
 
   /**
    * Called at a fixed interval to advance the program's state. May be undefined if a program does not perform any

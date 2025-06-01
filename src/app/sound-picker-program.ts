@@ -12,6 +12,7 @@ import type { Instrument, InstrumentFamily } from '../midi/gm2.ts'
 import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { logger } from '../logger.ts'
 import { speak } from './speak.ts'
+import type { ReadbackEvent } from '../vendors/novation/launchpad-mini-mk3/events.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 
@@ -29,9 +30,6 @@ export const createSoundPickerProgram = (
   } = {},
 ): Program => {
   const controller = new LaunchpadController(synthesizer, 1)
-  controller.stopAllSound()
-  controller.selectSound(0, { program: 73 })
-  controller.selectSound(1, { program: 73 })
   const selectedFamilies: Record<number, InstrumentFamily> = {}
   const selectedInstruments: Record<number, Instrument> = {}
   let selectedChannelId = controller.channels[0].id
@@ -98,6 +96,13 @@ export const createSoundPickerProgram = (
     }
   }
 
+  const handleReadback = ({ command, data }: ReadbackEvent) => {
+    if (command === 'select-mode' && data[0] !== 1) {
+      log.info('Setting programmer mode.')
+      void launchpad.sendCommand('select-mode', 'programmer')
+    }
+  }
+
   return {
     getRoot: () => {
       return group(
@@ -120,13 +125,13 @@ export const createSoundPickerProgram = (
     },
     initialize: () => {
       log.info('Initializing "Sound Picker" program.')
-
-      launchpad.events.on('readback', ({ command, data }) => {
-        if (command === 'select-mode' && data[0] !== 1) {
-          log.info('Setting programmer mode.')
-          void launchpad.sendCommand('select-mode', 'programmer')
-        }
-      })
+      controller.initialize()
+      launchpad.events.on('readback', handleReadback)
+    },
+    shutdown: () => {
+      log.info('Shutting down "Sound Picker" program.')
+      controller.shutdown()
+      launchpad.events.off('readback', handleReadback)
     },
   }
 }
