@@ -4,7 +4,6 @@ import type { RgbColor } from '../ui/color.ts'
 import type { MidiChannel } from './model.ts'
 import { logger } from '../logger.ts'
 import { normalizeMidiByte } from '../midi/normalize-midi-byte.ts'
-import { channel } from 'diagnostics_channel'
 
 export class Channel {
   /**
@@ -71,8 +70,6 @@ export class Channel {
      */
     program: number
   }) {
-    this._log.info({ program }, `Sent program change: ${program}`)
-
     this._device.send('cc', {
       channel: this.midiChannel,
       controller: 0,
@@ -88,6 +85,8 @@ export class Channel {
       channel: this.midiChannel,
       number: program,
     })
+
+    this._log.info({}, `Sent program change: ${program}`)
   }
 
   public get color() {
@@ -130,8 +129,8 @@ export class Channel {
 
   public set muted(newValue: boolean) {
     if (this.muted !== newValue) {
-      this._muted = true
-      this._log.info(`${newValue ? 'Muted' : 'Unuted'} channel.`)
+      this._muted = newValue
+      this._log.info(`${newValue ? 'Muted' : 'Unmuted'} channel.`)
     } else {
       this._log.debug(
         `Ignored attempt to set muted, because the value did not change. [newValue=${newValue}]`,
