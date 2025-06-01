@@ -14,9 +14,6 @@ export const createLauncher = async (
 
   return {
     getRoot: () => activeProgram.getRoot(),
-    initialize: () => {
-      void selectProgram(1)
-    },
     onUpdate: (callback) => {
       activeProgram.onUpdate?.(callback)
     },

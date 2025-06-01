@@ -99,8 +99,8 @@ export const createSoundPickerProgram = (
   }
 
   return {
-    getRoot: () =>
-      group(
+    getRoot: () => {
+      return group(
         makeSelectedScreen()(),
         createSideTrackSelector({
           channels: controller.channels,
@@ -116,8 +116,11 @@ export const createSoundPickerProgram = (
           },
           selectedScreenId,
         }),
-      ),
+      )
+    },
     initialize: () => {
+      log.info('Initializing "Sound Picker" program.')
+
       launchpad.events.on('readback', ({ command, data }) => {
         if (command === 'select-mode' && data[0] !== 1) {
           log.info('Setting programmer mode.')

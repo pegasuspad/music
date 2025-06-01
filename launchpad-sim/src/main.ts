@@ -1,9 +1,8 @@
 import { WebRenderer } from './web-renderer'
-import { createSoundPickerProgram } from '../../src/app/sound-picker-program.ts'
 import { loop } from '../../src/engine/program-loop.ts'
 import type { MidiDevice } from '../../src/midi/midi-device.ts'
 import type { NovationLaunchpadMiniMk3 } from '../../src/vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
-import { createLauncher } from '../../src/engine/launcher.ts'
+import { createLauncherProgram } from '../../src/app/launcher-program.ts'
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const container = document.getElementById('launchpad')!
@@ -30,11 +29,9 @@ const createMockMidiDevice = () =>
 
 await loop({
   events,
-  program: createLauncher([
-    () =>
-      createSoundPickerProgram(createMockLaunchpad(), createMockMidiDevice(), {
-        speakInstrumentNames: false,
-      }),
-  ]),
+  program: await createLauncherProgram({
+    launchpad: createMockLaunchpad(),
+    synthesizer: createMockMidiDevice(),
+  }),
   renderer,
 })
