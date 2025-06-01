@@ -1,4 +1,7 @@
+import { createButton } from '../ui/components/button.ts'
 import type { Program } from './program.ts'
+import { translate } from '../ui/transform/translate.ts'
+import { group } from '../ui/components/group.ts'
 
 export const createLauncher = async (
   programs: (() => Program)[],
@@ -11,23 +14,51 @@ export const createLauncher = async (
     onProgramChanged?: (program: Program) => void
   } = {},
 ): Promise<Program> => {
-  let activeProgram: Program
+  let activeProgramIndex: number
+  let activeProgram: Program | undefined
 
   const selectProgram = async (index: number) => {
-    activeProgram = programs[index]()
-    await activeProgram.initialize?.()
-    onProgramChanged?.(activeProgram)
+    if (index !== activeProgramIndex) {
+      await activeProgram?.shutdown?.()
+
+      activeProgramIndex = index
+      activeProgram = programs[index]()
+      await activeProgram.initialize?.()
+      onProgramChanged?.(activeProgram)
+    }
+  }
+
+  const createLauncherUi = () => {
+    const createProgramChangeButton = (direction: 1 | -1) =>
+      createButton({
+        color: [127, 127, 127],
+        onPress: () => {
+          const newIndex =
+            (activeProgramIndex + direction + programs.length) % programs.length
+          void selectProgram(newIndex)
+        },
+      })
+
+    return group(
+      translate(0, 8, createProgramChangeButton(-1)),
+      translate(1, 8, createProgramChangeButton(1)),
+    )
   }
 
   await selectProgram(0)
 
+  const launcherUi = createLauncherUi()
+
   return {
-    getRoot: () => activeProgram.getRoot(),
+    getRoot: () =>
+      activeProgram === undefined ? launcherUi : (
+        group(activeProgram.getRoot(), launcherUi)
+      ),
     onUpdate: (callback) => {
-      activeProgram.onUpdate?.(callback)
+      activeProgram?.onUpdate?.(callback)
     },
     tick: (elapsedSeconds) => {
-      activeProgram.tick?.(elapsedSeconds)
+      activeProgram?.tick?.(elapsedSeconds)
     },
   }
 }
