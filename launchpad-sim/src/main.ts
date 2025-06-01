@@ -9,17 +9,23 @@ const container = document.getElementById('launchpad')!
 const renderer = new WebRenderer(container)
 const events = renderer.padEvents
 
-const createMockLaunchpad = () =>
+const noop = (..._args: unknown[]) => {
+  // noop
+}
+
+const createStubLaunchpad = () =>
   ({
     events: {
-      on: (...args: unknown[]) => {},
+      off: noop,
+      on: noop,
     },
-    sendCommand: (...args: unknown) => {},
+    sendCommand: noop,
   }) as unknown as NovationLaunchpadMiniMk3
 
-const createMockMidiDevice = () =>
+const createStubMidiDevice = () =>
   ({
-    on: (...args: unknown[]) => {},
+    off: noop,
+    on: noop,
     send: (...args: unknown[]) => {
       console.log(
         `Send '${args[0] as string}' with ${JSON.stringify(args[1], null, 2)}`,
@@ -30,9 +36,9 @@ const createMockMidiDevice = () =>
 await loop({
   events,
   program: await createLauncherProgram({
-    launchpad: createMockLaunchpad(),
+    launchpad: createStubLaunchpad(),
     renderer,
-    synthesizer: createMockMidiDevice(),
+    synthesizer: createStubMidiDevice(),
   }),
   renderer,
 })
