@@ -1,5 +1,5 @@
 import type { IdentityResponseMessage } from '../../../midi/sysex-message-parser.ts'
-import type { LaunchpadCommand } from './commands/index.ts'
+import { type LaunchpadCommand, type Mode } from './commands/index.ts'
 
 export interface LaunchpadEvent {
   /**
@@ -39,6 +39,20 @@ export interface MidiStatsEvent extends LaunchpadEvent {
   interval: number
 }
 
+/**
+ * Event emitted when the Launchpad changes between 'live' mode and 'programmer' mode.
+ */
+export interface ModeChangedEvent extends LaunchpadEvent {
+  /**
+   * Type of event.
+   */
+  eventType: 'mode-changed'
+
+  /**
+   * The new mode.
+   */
+  mode: Mode
+}
 
 export interface PadEvent extends LaunchpadEvent {
   /**
@@ -100,6 +114,7 @@ export interface ReadbackEvent extends LaunchpadEvent {
 export type LaunchpadEventMap = {
   'identity-response': (event: IdentityResponseEvent) => void
   'midi-stats': (event: MidiStatsEvent) => void
+  'mode-changed': (event: ModeChangedEvent) => void
   'pad-down': (event: PadDownEvent) => void
   'pad-long-press': (event: PadLongPressEvent) => void
   'pad-up': (event: PadUpEvent) => void

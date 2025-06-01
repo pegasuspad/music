@@ -9,6 +9,7 @@ import {
   type LaunchpadCommand,
   type LaunchpadCommandConfig,
   type LaunchpadCommandDataType,
+  type Mode,
 } from './commands/index.ts'
 import type { Sysex } from 'easymidi'
 import { parseSysexMessage } from './sysex-messages.ts'
@@ -27,10 +28,14 @@ export type LaunchpadEventEmitter = TypedEventEmitter<LaunchpadEventMap>
 const log = logger.child({}, { msgPrefix: '[LAUNCHPAD] ' })
 
 export class NovationLaunchpadMiniMk3 {
-  private _initializationLogsDisplayed = false
   private _events = new EventEmitter() as LaunchpadEventEmitter
+  private _initializationLogsDisplayed = false
   public readonly _input: MidiDevice
   private _inputInitialized = false
+  /**
+   * The last known Mode the launchpad was in.
+   */
+  private _mode: Mode | undefined
   private _output: MidiDevice
 
   private _statsStartTime = 0
@@ -60,6 +65,25 @@ export class NovationLaunchpadMiniMk3 {
     this._output.on('disconnected', () => {
       this.onDisconnect(this._output.name)
     })
+
+    this.events.on('readback', (event) => {
+      if (event.command === 'select-mode') {
+        const newMode = event.data[0] === 1 ? 'programmer' : 'live'
+        if (newMode !== this._mode) {
+          logger.info(`Mode changed. [newMode=${newMode}]`)
+
+          this._mode = newMode
+          this._events.emit('mode-changed', {
+            eventType: 'mode-changed',
+            mode: newMode,
+          })
+        }
+      }
+    })
+
+    setInterval(() => {
+      void this.sendReadback('select-mode')
+    }, 3000)
 
     setInterval(() => {
       this._events.emit('midi-stats', {
@@ -145,7 +169,13 @@ export class NovationLaunchpadMiniMk3 {
         )
       } else {
         const command = lookupCommand(message.command)
-        log.info(
+        log.debug(
+          {
+            command,
+            data: bytes
+              .map((b) => `0x${b.toString(16).padStart(2, '0')}`)
+              .join(', '),
+          },
           `Received SysEx readback message for command: ${command?.name ?? message.command}`,
         )
 
@@ -236,6 +266,26 @@ export class NovationLaunchpadMiniMk3 {
     log.debug(
       { data, message: message.map((b) => `${b}`).join(', ') },
       `Sending command: ${command}`,
+    )
+
+    this._bytesSent += message.length
+
+    this._output.send('sysex', message)
+    return Promise.resolve()
+  }
+
+  /**
+   * Sends a readback request for the specified SysEx command to the device.
+   * @see - Launchpad Mini - Programmer's Referene Manual
+   * @param command Name of the command to send.
+   */
+  public sendReadback(command: LaunchpadCommand): Promise<void> {
+    const commandConfig = LaunchpadCommands[command]
+    const message = [...CommandHeader, commandConfig.code, ...CommandTrailer]
+
+    log.debug(
+      { message: message.map((b) => `${b}`).join(', ') },
+      `Sending readback: ${command}`,
     )
 
     this._bytesSent += message.length
