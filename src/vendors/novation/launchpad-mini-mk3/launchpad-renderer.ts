@@ -25,10 +25,7 @@ const turnPadOff = (x: number, y: number): PadLighting => ({
  * Renderer which displays an `RgbColor` `Canvas` by illuminating the LEDs on a Novation Launchpad Mini MK3.
  */
 export class LaunchpadRenderer implements Renderer<RgbColor> {
-  private lastCanvas: Canvas<RgbColor> = createCanvas<RgbColor>(
-    LaunchpadPadWidth,
-    LaunchpadPadHeight,
-  )
+  private lastCanvas: Canvas<RgbColor> | undefined
 
   public constructor(private launchpad: NovationLaunchpadMiniMk3) {
     // if our mode has changed, reset our 'lastCanvas' so that the whole display is redrawn
@@ -45,7 +42,10 @@ export class LaunchpadRenderer implements Renderer<RgbColor> {
   }
 
   public render(canvas: Canvas<RgbColor>) {
-    const diff = canvas.getData().diff(this.lastCanvas.getData())
+    const diff =
+      this.lastCanvas === undefined ?
+        canvas.getData()
+      : canvas.getData().diff(this.lastCanvas.getData())
 
     // const items = diff.map(
     //   (x, y, value) => `(${x}, ${y})=>[${value?.join(',')}]`,
@@ -78,5 +78,12 @@ export class LaunchpadRenderer implements Renderer<RgbColor> {
     }
 
     this.lastCanvas = canvas
+  }
+
+  /**
+   * Clear our last canvas, so the next frame performs a full draw.
+   */
+  public reset() {
+    this.lastCanvas = undefined
   }
 }

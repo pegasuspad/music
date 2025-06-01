@@ -41,6 +41,7 @@ const main = async (): Promise<void> => {
     options: {
       speakInstrumentNames: true,
     },
+    renderer,
     synthesizer: fp30x,
   })
 

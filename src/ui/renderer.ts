@@ -10,4 +10,9 @@ export interface Renderer<T> {
    * @param canvas
    */
   render(canvas: Canvas<T>): void
+
+  /**
+   * Reseets the renderer to a default state.
+   */
+  reset(): void
 }

@@ -72,4 +72,8 @@ export class WebRenderer {
   public get padEvents(): PadEventEmitter {
     return this._padEvents
   }
+
+  public reset() {
+    /* noop */
+  }
 }

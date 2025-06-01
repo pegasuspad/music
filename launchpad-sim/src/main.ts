@@ -31,6 +31,7 @@ await loop({
   events,
   program: await createLauncherProgram({
     launchpad: createMockLaunchpad(),
+    renderer,
     synthesizer: createMockMidiDevice(),
   }),
   renderer,
