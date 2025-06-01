@@ -10,14 +10,14 @@ const _log = logger.child({}, { msgPrefix: '[APP] ' })
  * Default display colors for our channels. Used for UI controls such as faders.
  */
 const ChannelColors: RgbColor[] = [
-  [67, 103, 125],
-  [85, 127, 97],
-  [100, 80, 127],
-  [127, 63, 51],
   [0, 0, 127],
   [127, 127, 0],
   [127, 0, 127],
   [0, 127, 127],
+  [67, 103, 125],
+  [85, 127, 97],
+  [100, 80, 127],
+  [127, 63, 51],
 ]
 
 /**
