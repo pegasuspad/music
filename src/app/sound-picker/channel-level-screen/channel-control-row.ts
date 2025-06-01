@@ -1,9 +1,9 @@
-import type { RgbColor } from '../../ui/color.ts'
-import { createButton } from '../../ui/components/button.ts'
-import { createFader } from '../../ui/components/fader.ts'
-import { group } from '../../ui/components/group.ts'
-import type { Drawable } from '../../ui/drawable.ts'
-import { translate } from '../../ui/transform/translate.ts'
+import type { RgbColor } from '../../../ui/color.ts'
+import { createButton } from '../../../ui/components/button.ts'
+import { createFader } from '../../../ui/components/fader.ts'
+import { group } from '../../../ui/components/group.ts'
+import type { Drawable } from '../../../ui/drawable.ts'
+import { translate } from '../../../ui/transform/translate.ts'
 import type { ChannelState } from '../model.ts'
 
 export const createChannelControlRow = ({

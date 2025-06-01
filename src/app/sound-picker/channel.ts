@@ -1,9 +1,9 @@
 import type pino from 'pino'
-import type { MidiDevice } from '../midi/midi-device.ts'
-import type { RgbColor } from '../ui/color.ts'
+import type { MidiDevice } from '../../midi/midi-device.ts'
+import type { RgbColor } from '../../ui/color.ts'
 import type { MidiChannel } from './model.ts'
-import { logger } from '../logger.ts'
-import { normalizeMidiByte } from '../midi/normalize-midi-byte.ts'
+import { logger } from '../../logger.ts'
+import { normalizeMidiByte } from '../../midi/normalize-midi-byte.ts'
 
 export class Channel {
   /**

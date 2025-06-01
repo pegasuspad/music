@@ -1,4 +1,4 @@
-import type { RgbColor } from '../ui/color.ts'
+import type { RgbColor } from '../../ui/color.ts'
 
 export type MidiChannel =
   | 0

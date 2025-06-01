@@ -1,22 +1,22 @@
-import { group } from '../ui/components/group.ts'
-import type { Program } from '../engine/program.ts'
+import { group } from '../../ui/components/group.ts'
+import type { Program } from '../../engine/program.ts'
 import { createChannelLevelScreen } from './channel-level-screen/channel-level-screen.ts'
-import type { MidiDevice } from '../midi/midi-device.ts'
+import type { MidiDevice } from '../../midi/midi-device.ts'
 import { LaunchpadController } from './controller.ts'
 import { createSideTrackSelector } from './global-nav/side-track-selector.ts'
 import { createTopScreenSelector } from './global-nav/top-screen-selector.ts'
 import { createSoundSelectScreen } from './sound-select-screen/sound-select-screen.ts'
-import type { Cell, Drawable } from '../ui/drawable.ts'
-import type { RgbColor } from '../ui/color.ts'
+import type { Cell, Drawable } from '../../ui/drawable.ts'
+import type { RgbColor } from '../../ui/color.ts'
 import {
   InstrumentFamilies,
   type Instrument,
   type InstrumentFamily,
-} from '../midi/gm2.ts'
-import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
-import { logger } from '../logger.ts'
-import { speak } from './speak.ts'
-import type { ReadbackEvent } from '../vendors/novation/launchpad-mini-mk3/events.ts'
+} from '../../midi/gm2.ts'
+import type { NovationLaunchpadMiniMk3 } from '../../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
+import { logger } from '../../logger.ts'
+import { speak } from '../speak.ts'
+import type { ReadbackEvent } from '../../vendors/novation/launchpad-mini-mk3/events.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 

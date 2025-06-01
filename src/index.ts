@@ -1,6 +1,6 @@
 import { NovationLaunchpadMiniMk3 } from './vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { LaunchpadRenderer } from './vendors/novation/launchpad-mini-mk3/launchpad-renderer.ts'
-import { createSoundPickerProgram } from './app/sound-picker-program.ts'
+import { createSoundPickerProgram } from './app/sound-picker/sound-picker-program.ts'
 import { loop } from './engine/program-loop.ts'
 import { createLaunchpadEventEmitter } from './vendors/novation/launchpad-mini-mk3/launchpad-event-emitter.ts'
 import { logger } from './logger.ts'
@@ -49,7 +49,7 @@ const main = async (): Promise<void> => {
 
   await loop({
     events,
-    program: soundPickerProgram,
+    program: launcher,
     renderer,
   })
 }
