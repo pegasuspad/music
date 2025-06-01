@@ -1,3 +1,4 @@
+import { logger } from '../../../logger.ts'
 import { createCanvas, type Canvas } from '../../../ui/canvas.ts'
 import type { RgbColor } from '../../../ui/color.ts'
 import type { Renderer } from '../../../ui/renderer.ts'
@@ -29,7 +30,19 @@ export class LaunchpadRenderer implements Renderer<RgbColor> {
     LaunchpadPadHeight,
   )
 
-  public constructor(private launchpad: NovationLaunchpadMiniMk3) {}
+  public constructor(private launchpad: NovationLaunchpadMiniMk3) {
+    // if our mode has changed, reset our 'lastCanvas' so that the whole display is redrawn
+    launchpad.events.on('mode-changed', (event) => {
+      if (event.mode === 'programmer') {
+        logger.info('Detected mode change. Redrawing whole canvas.')
+
+        this.lastCanvas = createCanvas<RgbColor>(
+          LaunchpadPadWidth,
+          LaunchpadPadHeight,
+        )
+      }
+    })
+  }
 
   public render(canvas: Canvas<RgbColor>) {
     const diff = canvas.getData().diff(this.lastCanvas.getData())
