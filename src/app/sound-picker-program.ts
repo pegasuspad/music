@@ -64,23 +64,13 @@ export const createSoundPickerProgram = (
     selectedChannelId,
   })
 
-  const makeSoundSelectScreen = createSoundSelectScreen({
-    onFamilySelected: (family) => {
-      selectedFamilies[selectedChannelId] = family
-    },
-    onInstrumentSelected: (instrument) => {
-      if (speakInstrumentNames) {
-        speak(instrument.name)
-      }
-
-      selectedInstruments[selectedChannelId] = instrument
-      controller.selectSound(selectedChannelId, {
-        program: instrument.patch,
-      })
-    },
-    selectedFamily: selectedFamilies[selectedChannelId],
-    selectedInstrument: selectedInstruments[selectedChannelId],
-  })
+  const makeSoundSelectScreen = () =>
+    createSoundSelectScreen({
+      onFamilySelected: selectFamily,
+      onInstrumentSelected: selectInstrument,
+      selectedFamily: selectedFamilies[selectedChannelId],
+      selectedInstrument: selectedInstruments[selectedChannelId],
+    })()
 
   const makeSelectedScreen = () => {
     switch (selectedScreenId) {

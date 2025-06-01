@@ -68,8 +68,6 @@ export const createSoundSelectScreen = ({
     }
   }
 
-  console.log('recreated: sf=', selectFamily)
-
   return () =>
     group(
       ...InstrumentFamilies.map((family, i) =>
