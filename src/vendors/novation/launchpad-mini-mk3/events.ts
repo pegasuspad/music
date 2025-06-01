@@ -8,6 +8,38 @@ export interface LaunchpadEvent {
   eventType: string
 }
 
+/**
+ * Event generated when a universal SysEx "Get Identity Response" message is received.
+ */
+export interface IdentityResponseEvent extends LaunchpadEvent {
+  eventType: 'identity-response'
+
+  /**
+   * Parsed identity response.
+   */
+  message: IdentityResponseMessage
+}
+
+export interface MidiStatsEvent extends LaunchpadEvent {
+  eventType: 'midi-stats'
+
+  /**
+   * Number of bytes received over MIDI during the interval.
+   */
+  bytesReceived: number
+
+  /**
+   * Number of bytes sent over MIDI during the interval.
+   */
+  bytesSent: number
+
+  /**
+   * Length of time over which these stats were collected.
+   */
+  interval: number
+}
+
+
 export interface PadEvent extends LaunchpadEvent {
   /**
    * Type of event
@@ -42,32 +74,6 @@ export interface PadLongPressEvent extends PadEvent {
   duration: number
 
   eventType: 'pad-long-press'
-}
-
-/**
- * Event generated when a universal SysEx "Get Identity Response" message is received.
- */
-export interface IdentityResponseEvent extends LaunchpadEvent {
-  eventType: 'identity-response'
-
-  /**
-   * Parsed identity response.
-   */
-  message: IdentityResponseMessage
-}
-
-export interface MidiStatsEvent extends LaunchpadEvent {
-  eventType: 'midi-stats'
-
-  /**
-   * Number of bytes sent over MIDI during the interval.
-   */
-  bytesSent: number
-
-  /**
-   * Length of time over which these stats were collected.
-   */
-  interval: number
 }
 
 /**

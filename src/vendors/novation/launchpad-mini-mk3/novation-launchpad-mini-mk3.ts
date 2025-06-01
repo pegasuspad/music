@@ -34,6 +34,7 @@ export class NovationLaunchpadMiniMk3 {
   private _output: MidiDevice
 
   private _statsStartTime = 0
+  private _bytesReceived = 0
   private _bytesSent = 0
 
   constructor({
@@ -62,11 +63,13 @@ export class NovationLaunchpadMiniMk3 {
 
     setInterval(() => {
       this._events.emit('midi-stats', {
+        bytesReceived: this._bytesReceived,
         bytesSent: this._bytesSent,
         eventType: 'midi-stats',
         interval: Date.now() - this._statsStartTime,
       })
       this._statsStartTime = Date.now()
+      this._bytesReceived = 0
       this._bytesSent = 0
     }, 15000)
     this._statsStartTime = Date.now()
@@ -112,6 +115,8 @@ export class NovationLaunchpadMiniMk3 {
    * @param data
    */
   private onSysEx({ bytes }: Sysex) {
+    this._bytesReceived += bytes.length
+
     const result = parseSysex(bytes)
     if (!result.valid) {
       log.warn(

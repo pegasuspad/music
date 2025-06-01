@@ -11,12 +11,19 @@ const main = async (): Promise<void> => {
   const renderer = new LaunchpadRenderer(launchpad)
   const events = createLaunchpadEventEmitter(launchpad)
 
-  launchpad.events.on('midi-stats', ({ bytesSent, interval }) => {
-    logger.info(`MIDI send: ${Math.round(bytesSent / (interval / 1000))} bps`)
-  })
+  launchpad.events.on(
+    'midi-stats',
+    ({ bytesReceived, bytesSent, interval }) => {
+      const rx = Math.round(bytesSent / (interval / 1000))
+      const tx = Math.round(bytesReceived / (interval / 1000))
+      const total = rx + tx
 
-  // const fp30x = new MidiDevice('FP-30X MIDI Bluetooth')
-  const fp30x = new MidiDevice('Roland Digital Piano')
+      logger.info(
+        `[STATS] MIDI data transmitted. [total=${total} bps, tx=${tx} bps, rx=${rx} bps]`,
+      )
+    },
+  )
+
 
   await loop({
     events,
