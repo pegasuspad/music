@@ -8,7 +8,11 @@ import { createTopScreenSelector } from './global-nav/top-screen-selector.ts'
 import { createSoundSelectScreen } from './sound-select-screen/sound-select-screen.ts'
 import type { Cell, Drawable } from '../ui/drawable.ts'
 import type { RgbColor } from '../ui/color.ts'
-import type { Instrument, InstrumentFamily } from '../midi/gm2.ts'
+import {
+  InstrumentFamilies,
+  type Instrument,
+  type InstrumentFamily,
+} from '../midi/gm2.ts'
 import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { logger } from '../logger.ts'
 import { speak } from './speak.ts'
@@ -29,7 +33,8 @@ export const createSoundPickerProgram = (
     speakInstrumentNames?: boolean
   } = {},
 ): Program => {
-  const controller = new LaunchpadController(synthesizer, 1)
+  const channelCount = 1
+  const controller = new LaunchpadController(synthesizer, channelCount)
   const selectedFamilies: Record<number, InstrumentFamily> = {}
   const selectedInstruments: Record<number, Instrument> = {}
   let selectedChannelId = controller.channels[0].id
@@ -50,6 +55,21 @@ export const createSoundPickerProgram = (
   //     channel: index as Channel,
   //   })
   // }, 250)
+
+  const selectFamily = (family: InstrumentFamily) => {
+    selectedFamilies[selectedChannelId] = family
+  }
+
+  const selectInstrument = (instrument: Instrument) => {
+    if (speakInstrumentNames) {
+      speak(instrument.name)
+    }
+
+    selectedInstruments[selectedChannelId] = instrument
+    controller.selectSound(selectedChannelId, {
+      program: instrument.patch,
+    })
+  }
 
   const channelLevelScreenFactory = createChannelLevelScreen({
     channels: [...controller.channels],
@@ -115,6 +135,23 @@ export const createSoundPickerProgram = (
     },
     initialize: () => {
       log.info('Initializing "Sound Picker" program.')
+
+      // reset instruments and mute all tracks except first
+      for (let i = 0; i < channelCount; i++) {
+        selectedFamilies[i] = InstrumentFamilies[0]
+        selectedInstruments[i] = InstrumentFamilies[0].instruments[0]
+        controller.selectSound(i, {
+          program: InstrumentFamilies[0].instruments[0].patch,
+        })
+
+        if (i > 0) {
+          controller.setMuted(i, true)
+        }
+      }
+
+      selectedChannelId = 0
+      selectedScreenId = 0
+
       controller.initialize()
       launchpad.events.on('readback', handleReadback)
     },
