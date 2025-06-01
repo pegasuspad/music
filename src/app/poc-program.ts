@@ -8,12 +8,16 @@ import { createTopScreenSelector } from './global-nav/top-screen-selector.ts'
 import { createSoundSelectScreen } from './sound-select-screen/sound-select-screen.ts'
 import type { Cell, Drawable } from '../ui/drawable.ts'
 import type { RgbColor } from '../ui/color.ts'
+import type { Instrument, InstrumentFamily } from '../midi/gm2.ts'
+import { exec } from 'node:child_process'
 
 export const createPoc = (synthesizer: MidiDevice): Program => {
-  const controller = new LaunchpadController(synthesizer, 8)
+  const controller = new LaunchpadController(synthesizer, 2)
   controller.stopAllSound()
   controller.selectSound(0, { program: 73 })
   controller.selectSound(1, { program: 73 })
+  const selectedFamilies: Record<number, InstrumentFamily> = {}
+  const selectedInstruments: Record<number, Instrument> = {}
   let selectedChannelId = controller.channels[0].id
   let selectedScreenId = 0
 
@@ -46,7 +50,21 @@ export const createPoc = (synthesizer: MidiDevice): Program => {
     selectedChannelId,
   })
 
-  const makeSoundSelectScreen = createSoundSelectScreen()
+  const makeSoundSelectScreen = createSoundSelectScreen({
+    onFamilySelected: (family) => {
+      selectedFamilies[selectedChannelId] = family
+    },
+    onInstrumentSelected: (instrument) => {
+      exec(`say ${JSON.stringify(instrument.name)}`)
+
+      selectedInstruments[selectedChannelId] = instrument
+      controller.selectSound(selectedChannelId, {
+        program: instrument.patch,
+      })
+    },
+    selectedFamily: selectedFamilies[selectedChannelId],
+    selectedInstrument: selectedInstruments[selectedChannelId],
+  })
 
   const makeSelectedScreen = () => {
     switch (selectedScreenId) {
