@@ -28,7 +28,7 @@ export const createSoundPickerProgram = (
     speakInstrumentNames?: boolean
   } = {},
 ): Program => {
-  const controller = new LaunchpadController(synthesizer, 2)
+  const controller = new LaunchpadController(synthesizer, 1)
   controller.stopAllSound()
   controller.selectSound(0, { program: 73 })
   controller.selectSound(1, { program: 73 })
