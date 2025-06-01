@@ -3,12 +3,12 @@ import {
   type Instrument,
   type InstrumentFamily,
   type InstrumentFamilyName,
-} from '../../midi/gm2.ts'
-import type { RgbColor } from '../../ui/color.ts'
-import { createButton } from '../../ui/components/button.ts'
-import { group } from '../../ui/components/group.ts'
-import type { Drawable } from '../../ui/drawable.ts'
-import { translate } from '../../ui/transform/translate.ts'
+} from '../../../midi/gm2.ts'
+import type { RgbColor } from '../../../ui/color.ts'
+import { createButton } from '../../../ui/components/button.ts'
+import { group } from '../../../ui/components/group.ts'
+import type { Drawable } from '../../../ui/drawable.ts'
+import { translate } from '../../../ui/transform/translate.ts'
 
 const InstrumentFamilyColors = {
   Piano: [96, 0, 127], // Purple — elegance, classical feel

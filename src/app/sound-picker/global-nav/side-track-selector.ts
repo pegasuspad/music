@@ -1,6 +1,6 @@
-import { createButton } from '../../ui/components/button.ts'
-import { group } from '../../ui/components/group.ts'
-import { translate } from '../../ui/transform/translate.ts'
+import { createButton } from '../../../ui/components/button.ts'
+import { group } from '../../../ui/components/group.ts'
+import { translate } from '../../../ui/transform/translate.ts'
 import type { ChannelState } from '../model.ts'
 
 export const createSideTrackSelector = ({

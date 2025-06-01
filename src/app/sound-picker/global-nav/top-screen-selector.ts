@@ -1,8 +1,8 @@
-import type { RgbColor } from '../../ui/color.ts'
-import { createButton } from '../../ui/components/button.ts'
-import { group } from '../../ui/components/group.ts'
-import type { Drawable } from '../../ui/drawable.ts'
-import { translate } from '../../ui/transform/translate.ts'
+import type { RgbColor } from '../../../ui/color.ts'
+import { createButton } from '../../../ui/components/button.ts'
+import { group } from '../../../ui/components/group.ts'
+import type { Drawable } from '../../../ui/drawable.ts'
+import { translate } from '../../../ui/transform/translate.ts'
 
 export const createTopScreenSelector = ({
   numberOfScreens = 1,
