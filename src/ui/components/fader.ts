@@ -12,7 +12,7 @@ import type {
  * Creates a `Drawable` which displays a virtual fader of a specified size and color.
  */
 export const createFader = ({
-  initialDelay = 300,
+  initialDelay = 500,
   length = 8,
   onChange,
   orientation = 'vertical',
