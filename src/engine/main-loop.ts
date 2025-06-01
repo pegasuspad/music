@@ -1,7 +1,5 @@
+import { isBrowser } from '../app/is-browser.ts'
 import { currentTimeMillis } from './timer.ts'
-
-const isBrowser =
-  typeof window !== 'undefined' && !!window.requestAnimationFrame
 
 /**
  * Starts a "game loop" which performs "update" and "render" operations at a measured pace. Uses an appropriate
@@ -51,7 +49,7 @@ export const startLoop = ({
       if (done()) {
         resolve()
       } else {
-        if (isBrowser) {
+        if (isBrowser()) {
           window.requestAnimationFrame(tick)
         } else {
           // in Node: self-throttled setTimeout to hit ~targetFPS
@@ -64,7 +62,7 @@ export const startLoop = ({
       }
     }
 
-    if (isBrowser) {
+    if (isBrowser()) {
       window.requestAnimationFrame(tick)
     } else {
       tick(currentTimeMillis())
