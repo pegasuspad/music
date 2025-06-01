@@ -120,9 +120,6 @@ export class NovationLaunchpadMiniMk3 {
    */
   private async onOutputConnect(): Promise<void> {
     log.info(`Connected: ${this._output.name}`)
-    log.info('Setting programmer mode.')
-    await this.sendCommand('select-mode', 'programmer')
-
     await this.logDeviceData()
   }
 

@@ -10,8 +10,15 @@ import type { Cell, Drawable } from '../ui/drawable.ts'
 import type { RgbColor } from '../ui/color.ts'
 import type { Instrument, InstrumentFamily } from '../midi/gm2.ts'
 import { exec } from 'node:child_process'
+import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
+import { logger } from '../logger.ts'
 
-export const createPoc = (synthesizer: MidiDevice): Program => {
+const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
+
+export const createPoc = (
+  launchpad: NovationLaunchpadMiniMk3,
+  synthesizer: MidiDevice,
+): Program => {
   const controller = new LaunchpadController(synthesizer, 2)
   controller.stopAllSound()
   controller.selectSound(0, { program: 73 })
@@ -36,6 +43,13 @@ export const createPoc = (synthesizer: MidiDevice): Program => {
   //     channel: index as Channel,
   //   })
   // }, 250)
+
+  launchpad.events.on('readback', ({ command, data }) => {
+    if (command === 'select-mode' && data[0] !== 1) {
+      log.info('Setting programmer mode.')
+      void launchpad.sendCommand('select-mode', 'programmer')
+    }
+  })
 
   const channelLevelScreenFactory = createChannelLevelScreen({
     channels: [...controller.channels],

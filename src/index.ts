@@ -27,7 +27,7 @@ const main = async (): Promise<void> => {
 
   await loop({
     events,
-    program: createPoc(fp30x),
+    program: createPoc(launchpad, fp30x),
     renderer,
   })
 }
