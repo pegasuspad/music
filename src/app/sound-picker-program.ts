@@ -53,13 +53,6 @@ export const createSoundPickerProgram = (
   //   })
   // }, 250)
 
-  launchpad.events.on('readback', ({ command, data }) => {
-    if (command === 'select-mode' && data[0] !== 1) {
-      log.info('Setting programmer mode.')
-      void launchpad.sendCommand('select-mode', 'programmer')
-    }
-  })
-
   const channelLevelScreenFactory = createChannelLevelScreen({
     channels: [...controller.channels],
     onLevelChanged: (channelId, level) => {
@@ -124,5 +117,13 @@ export const createSoundPickerProgram = (
           selectedScreenId,
         }),
       ),
+    initialize: () => {
+      launchpad.events.on('readback', ({ command, data }) => {
+        if (command === 'select-mode' && data[0] !== 1) {
+          log.info('Setting programmer mode.')
+          void launchpad.sendCommand('select-mode', 'programmer')
+        }
+      })
+    },
   }
 }

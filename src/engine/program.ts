@@ -12,6 +12,11 @@ export interface Program {
   getRoot(): Drawable<RgbColor>
 
   /**
+   * Function which performs optional initialization for this program.
+   */
+  initialize?: () => Promise<void> | void
+
+  /**
    * Callback which is invoked whenever the `Program` state changes and should be rerendered.
    */
   onUpdate?(callback: () => void): void

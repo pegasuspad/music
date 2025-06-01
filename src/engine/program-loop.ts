@@ -58,6 +58,8 @@ export const loop = async ({
     inputRouter.handle(event)
   })
 
+  await program.initialize?.()
+
   await startLoop({
     done: () => false,
     render: () => {
