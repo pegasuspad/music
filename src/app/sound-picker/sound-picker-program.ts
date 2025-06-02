@@ -38,7 +38,7 @@ export const createSoundPickerProgram = (
   const selectedFamilies: Record<number, InstrumentFamily> = {}
   const selectedInstruments: Record<number, Instrument> = {}
   let selectedChannelId = controller.channels[0].id
-  let selectedScreenId = 0
+  let selectedScreenId = 1
 
   // play notes when level changed?
   //
@@ -150,7 +150,7 @@ export const createSoundPickerProgram = (
       }
 
       selectedChannelId = 0
-      selectedScreenId = 0
+      selectedScreenId = 1
 
       controller.initialize()
       launchpad.events.on('readback', handleReadback)

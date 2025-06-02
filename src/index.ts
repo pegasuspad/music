@@ -6,7 +6,6 @@ import { createLaunchpadEventEmitter } from './vendors/novation/launchpad-mini-m
 import { logger } from './logger.ts'
 import { MidiDevice } from './midi/midi-device.ts'
 import { createLauncherProgram } from './app/launcher-program.ts'
-import { Input, Output } from 'easymidi'
 
 const main = async (): Promise<void> => {
   const launchpad = new NovationLaunchpadMiniMk3()

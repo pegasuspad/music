@@ -5,7 +5,7 @@ import type { MidiDevice } from '../midi/midi-device.ts'
 import type { Renderer } from '../ui/renderer.ts'
 import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { createLiveModeProgram } from './live-mode-program.ts'
-import { createNoteMatchProgram } from './note-match-program.ts'
+import { createNoteMatchProgram } from './note-match/note-match-program.ts'
 import { createSoundPickerProgram } from './sound-picker/sound-picker-program.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
@@ -34,7 +34,7 @@ export const createLauncherProgram = ({
   return createLauncher(
     [
       () => createSoundPickerProgram(launchpad, synthesizer, options),
-      () => createNoteMatchProgram(launchpad, synthesizer),
+      // () => createNoteMatchProgram(launchpad, synthesizer),
       // () => createLiveModeProgram({ launchpad }),
     ],
     {
