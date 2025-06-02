@@ -18,24 +18,40 @@ type AllEvents = {
 } & MidiEventMap
 
 export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<AllEvents>) {
+  private direction: 'duplex' | 'input' | 'output'
+  public readonly inputName: string
   private input?: easymidi.Input
+  public readonly outputName: string
   private output?: easymidi.Output
   private log: pino.Logger
   private _state: 'connected' | 'disconnected' | 'error' = 'disconnected'
   private createDeviceHandle: ReturnType<typeof setTimeout> | undefined
   private watcher: MidiDeviceWatcher
 
-  constructor(
-    public readonly name: string,
-    private direction: 'duplex' | 'input' | 'output' = 'duplex',
+  constructor({
+    name,
+    direction = 'duplex',
     pollIntervalMs = 100,
-  ) {
+  }: {
+    name:
+      | string
+      | {
+          input: string
+          output: string
+        }
+    direction?: 'duplex' | 'input' | 'output'
+    pollIntervalMs?: number
+  }) {
     super()
 
-    this.log = logger.child({}, { msgPrefix: `[${name}] ` })
+    this.log = logger
 
+    this.inputName = typeof name === 'string' ? name : name.input
+    this.outputName = typeof name === 'string' ? name : name.output
+
+    this.direction = direction
     this.watcher = new MidiDeviceWatcher({
-      devicesToWatch: [name],
+      devicesToWatch: [this.inputName, this.outputName],
       pollIntervalMs,
     })
 
@@ -62,7 +78,7 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
         ['duplex', 'input'].includes(this.direction) &&
         this.input === undefined
       ) {
-        this.input = new easymidi.Input(this.name)
+        this.input = new easymidi.Input(this.inputName)
         this.hookAllEvents()
       }
 
@@ -70,7 +86,7 @@ export class MidiDevice extends (EventEmitter as new () => TypedEventEmitter<All
         ['duplex', 'output'].includes(this.direction) &&
         this.output === undefined
       ) {
-        this.output = new easymidi.Output(this.name)
+        this.output = new easymidi.Output(this.outputName)
       }
 
       this.emit('connected')

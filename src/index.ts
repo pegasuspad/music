@@ -6,6 +6,7 @@ import { createLaunchpadEventEmitter } from './vendors/novation/launchpad-mini-m
 import { logger } from './logger.ts'
 import { MidiDevice } from './midi/midi-device.ts'
 import { createLauncherProgram } from './app/launcher-program.ts'
+import { Input, Output } from 'easymidi'
 
 const main = async (): Promise<void> => {
   const launchpad = new NovationLaunchpadMiniMk3()
@@ -26,8 +27,9 @@ const main = async (): Promise<void> => {
   )
 
   // const fp30x = new MidiDevice('FP-30X MIDI Bluetooth')
-  const fp30x = new MidiDevice('Roland Digital Piano')
-
+  const fp30x = new MidiDevice({
+    name: 'Roland Digital Piano',
+  })
   fp30x.on('cc', (cc) => {
     console.log('got cc', JSON.stringify(cc, null, 2))
   })

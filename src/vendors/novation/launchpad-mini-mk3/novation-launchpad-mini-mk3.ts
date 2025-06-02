@@ -49,8 +49,14 @@ export class NovationLaunchpadMiniMk3 {
     inputDeviceName?: string
     outputDeviceName?: string
   } = {}) {
-    this._input = new MidiDevice(inputDeviceName, 'input')
-    this._output = new MidiDevice(outputDeviceName, 'output')
+    this._input = new MidiDevice({
+      name: inputDeviceName,
+      direction: 'input',
+    })
+    this._output = new MidiDevice({
+      name: outputDeviceName,
+      direction: 'output',
+    })
 
     this._input.on('connected', () => {
       void this.onInputConnect()
@@ -60,10 +66,10 @@ export class NovationLaunchpadMiniMk3 {
     })
 
     this._input.on('disconnected', () => {
-      this.onDisconnect(this._input.name)
+      this.onDisconnect(this._input.inputName)
     })
     this._output.on('disconnected', () => {
-      this.onDisconnect(this._output.name)
+      this.onDisconnect(this._output.outputName)
     })
 
     this.events.on('readback', (event) => {
@@ -103,7 +109,7 @@ export class NovationLaunchpadMiniMk3 {
    * Callback which is invoked when the Launchpad's input device is (re)connected to USB.
    */
   private async onInputConnect(): Promise<void> {
-    log.info(`Connected: ${this._input.name}`)
+    log.info(`Connected: ${this._input.inputName}`)
 
     if (!this._inputInitialized) {
       this._input.on('sysex', (sysex) => {
@@ -119,7 +125,7 @@ export class NovationLaunchpadMiniMk3 {
    * Callback which is invoked when the Launchpad's output device is (re)connected to USB.
    */
   private async onOutputConnect(): Promise<void> {
-    log.info(`Connected: ${this._output.name}`)
+    log.info(`Connected: ${this._output.outputName}`)
     await this.logDeviceData()
   }
 
