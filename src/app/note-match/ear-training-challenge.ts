@@ -26,7 +26,7 @@ export interface EarTrainingChallenge {
   /**
    * Play the challenge sequence, resolving the promise when playback is complete.
    */
-  playChallenge(output: NoteController, channel: Channel): void
+  playChallenge(output: NoteController, channel: Channel): Promise<void>
 }
 
 const log = logger.child({}, { msgPrefix: '[EAR] ' })
@@ -40,13 +40,13 @@ export class ChallengeInputHandler {
   private noteOffHandler: (event: Note) => void
   private noteOnHandler: (event: Note) => void
   private currentNote: CurrentNote | undefined
-  private state: 'ready' | 'started' = 'ready'
+  private state: 'stopped' | 'paused' | 'running' = 'stopped'
 
   public constructor(
     private readonly midi: MidiDevice,
     private readonly inputChannel: Channel,
     private readonly echoChannel: Channel,
-    private readonly onNote: (note: number, duration: number) => void,
+    private readonly onNote: (note: number, duration: number) => Promise<void> | void,
   ) {
     this.noteOffHandler = this.handleNoteOff.bind(this)
     this.noteOnHandler = this.handleNoteOn.bind(this)
@@ -60,6 +60,11 @@ export class ChallengeInputHandler {
       channel: this.echoChannel,
     })
 
+    if (this.state === 'paused') {
+      log.info(`Received noteoff while "paused". [channel=${note.channel}, note=${note.note}]`)
+      return
+    }
+
     if (
       this.inputChannel === note.channel &&
       this.currentNote?.value === note.note
@@ -68,12 +73,18 @@ export class ChallengeInputHandler {
 
       log.info(`Checking note input. [note=${note.note}, duration=${duration}]`)
 
-      this.onNote(this.currentNote.value, duration)
+      const value = this.currentNote.value
       this.currentNote = undefined
+      void this.onNote(value, duration)
     }
   }
 
   private handleNoteOn(note: Note) {
+    if (this.state === 'paused') {
+      log.info(`Received noteon while "paused". [channel=${note.channel}, note=${note.note}]`)
+      return
+    }
+
     if (this.inputChannel === note.channel) {
       if (!this.isPlaying) {
         this.midi.send('noteon', {
@@ -93,21 +104,39 @@ export class ChallengeInputHandler {
     return this.currentNote !== undefined
   }
 
+  private setState(state: 'stopped' | 'paused' | 'running' ) {
+    log.info(`Setting input controller state: ${state}`)
+    this.state = state
+    this.currentNote = undefined
+  }
+
+  public pause() {
+    if (this.state === 'running') {
+      this.setState('paused')
+    }
+  }
+
+  public unpause() {
+    if (this.state === 'paused') {
+      this.setState('running')
+    }
+  }
+
   public start() {
-    if (this.state === 'ready') {
+    if (this.state === 'stopped') {
       this.midi.on('noteoff', this.noteOffHandler)
       this.midi.on('noteon', this.noteOnHandler)
 
-      this.state = 'started'
+      this.setState('running')
     }
   }
 
   public stop() {
-    if (this.state === 'started') {
+    if (this.state !== 'stopped') {
       this.midi.off('noteoff', this.noteOffHandler)
       this.midi.off('noteon', this.noteOnHandler)
 
-      this.state = 'ready'
+      this.setState('stopped')
     }
   }
 }
@@ -117,8 +146,8 @@ export class ChallengeController {
   private challengeChannel: Channel
   private input: ChallengeInputHandler
   private noteController: NoteController
-  private onCorrectResponse: () => void
-  private onIncorrectResponse: () => void
+  private onCorrectResponse: () => Promise<void> | void
+  private onIncorrectResponse: () => Promise<void> | void
   private replayChallengeAt = 0
   private state: 'ready' | 'started' = 'ready'
 
@@ -128,8 +157,8 @@ export class ChallengeController {
     inputChannel: Channel
     midi: MidiDevice
     noteController: NoteController
-    onCorrectResponse: () => void
-    onIncorrectResponse: () => void
+    onCorrectResponse: () => Promise<void> | void
+    onIncorrectResponse: () => Promise<void> | void
   }) {
     this.challengeChannel = options.challengeChannel
     this.input = new ChallengeInputHandler(
@@ -145,22 +174,26 @@ export class ChallengeController {
     this.start()
   }
 
-  private handleNote(note: number, duration: number) {
+  private async handleNote(note: number, duration: number) {
     const result = this.challenge?.handleNote(note, duration)
     if (result === 'correct') {
-      this.onCorrectResponse()
+      this.input.pause()
+      await this.onCorrectResponse()
     } else if (result === 'incorrect') {
-      this.onIncorrectResponse()
+      this.input.pause()
+      await this.onIncorrectResponse()
       this.replayChallengeAt = currentTimeMillis() + 700
     }
   }
 
-  private replayChallengeNow() {
+  private async replayChallengeNow() {
     if (this.challenge) {
       this.replayChallengeAt =
         currentTimeMillis() + this.challenge.challengeReplayInterval
 
-      this.challenge.playChallenge(this.noteController, this.challengeChannel)
+      await this.challenge.playChallenge(this.noteController, this.challengeChannel)
+
+      this.input.unpause()
     }
   }
 
@@ -186,7 +219,7 @@ export class ChallengeController {
   public tick() {
     if (this.challenge && this.state === 'started') {
       if (currentTimeMillis() >= this.replayChallengeAt) {
-        this.replayChallengeNow()
+        void this.replayChallengeNow()
       }
     }
   }

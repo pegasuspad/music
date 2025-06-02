@@ -3,10 +3,14 @@ import { loop } from '../../src/engine/program-loop.ts'
 import type { MidiDevice } from '../../src/midi/midi-device.ts'
 import type { NovationLaunchpadMiniMk3 } from '../../src/vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { createLauncherProgram } from '../../src/app/launcher-program.ts'
+import { WebMidiPiano } from './web-midi-piano.ts'
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const container = document.getElementById('launchpad')!
-const renderer = new WebRenderer(container)
+const launchpadContainer = document.getElementById('launchpad')!
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const pianoContainer = document.getElementById('piano')!
+const piano = new WebMidiPiano(pianoContainer)
+const renderer = new WebRenderer(launchpadContainer)
 const events = renderer.padEvents
 
 const noop = (..._args: unknown[]) => {
@@ -38,7 +42,7 @@ await loop({
   program: await createLauncherProgram({
     launchpad: createStubLaunchpad(),
     renderer,
-    synthesizer: createStubMidiDevice(),
+    synthesizer: piano as unknown as MidiDevice,
   }),
   renderer,
 })

@@ -77,13 +77,13 @@ export const createNoteMatchProgram = (
     inputChannel: MidiChannels.Input,
     midi: synthesizer,
     noteController,
-    onCorrectResponse: () => {
-      void applause().then(() => {
+    onCorrectResponse: async () => {
+      await applause().then(() => {
         startNewChallenge()
       })
     },
     onIncorrectResponse: () => {
-      void error()
+      // noop
     },
   })
 
@@ -107,11 +107,15 @@ export const createNoteMatchProgram = (
       number: 15 * 8 + 6,
     })
 
-    return new Promise<void>((resolve) => {
+    await new Promise<void>((resolve) => {
       noteController.play(60, 1250, {
         channel: MidiChannels.CorrectFeedback,
         onComplete: resolve,
       })
+    })
+
+    return new Promise<void>((resolve) => {
+      setTimeout(resolve, 1000)
     })
   }
 

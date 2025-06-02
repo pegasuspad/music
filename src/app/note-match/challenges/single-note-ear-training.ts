@@ -27,14 +27,17 @@ export class SingleNoteEarTraining implements EarTrainingChallenge {
   }
 
   public playChallenge(output: NoteController, channel: Channel) {
-    log.info('Playing challenge.')
+    log.debug('Playing challenge.')
 
-    output.play(this.note, 1000, {
-      channel,
-      onComplete: () => {
-        log.info('Challenge playback completed.')
-      },
-      velocity: 96,
+    return new Promise<void>(resolve => {
+      output.play(this.note, 1000, {
+        channel,
+        onComplete: () => {
+          log.debug('Challenge playback completed.')
+          resolve()
+        },
+        velocity: 96,
+      })
     })
   }
 }

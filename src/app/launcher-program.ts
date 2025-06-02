@@ -34,7 +34,7 @@ export const createLauncherProgram = ({
   return createLauncher(
     [
       () => createSoundPickerProgram(launchpad, synthesizer, options),
-      // () => createNoteMatchProgram(launchpad, synthesizer),
+      () => createNoteMatchProgram(launchpad, synthesizer),
       // () => createLiveModeProgram({ launchpad }),
     ],
     {

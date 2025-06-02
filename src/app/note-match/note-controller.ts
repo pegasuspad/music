@@ -67,8 +67,6 @@ export class NoteController {
       velocity,
     })
 
-    console.log('playing on', this.device.outputName, channel, note, velocity)
-
     const stopAt = currentTimeMillis() + duration
     const key = `${channel}#${note}#${stopAt}`
 
