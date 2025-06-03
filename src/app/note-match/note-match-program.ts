@@ -15,45 +15,8 @@ import { logger } from '../../logger.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 
-const notes = [
-  {
-    name: 'C',
-    value: 60,
-  },
-  {
-    name: 'D',
-    value: 62,
-  },
-  {
-    name: 'E',
-    value: 64,
-  },
-  {
-    name: 'F',
-    value: 65,
-  },
-  {
-    name: 'G',
-    value: 67,
-  },
-  {
-    name: 'A',
-    value: 69,
-  },
-  {
-    name: 'B',
-    value: 71,
-  },
 
-  {
-    name: 'C',
-    value: 72,
-  },
-]
 
-const getRandomInt = (max: number) => {
-  return Math.floor(Math.random() * max)
-}
 
 const MidiChannels = {
   Challenge: 4,
@@ -67,7 +30,6 @@ export const createNoteMatchProgram = (
   launchpad: NovationLaunchpadMiniMk3,
   synthesizer: MidiDevice,
 ): Program => {
-  let activeNoteIndex: number | undefined
   let challenge: EarTrainingChallenge | undefined
   const noteController = new NoteController(synthesizer)
 
@@ -88,17 +50,8 @@ export const createNoteMatchProgram = (
   })
 
   const startNewChallenge = (): void => {
-    activeNoteIndex = getRandomInt(8)
-    challenge = new SingleNoteEarTraining(notes[activeNoteIndex].value)
+    challenge = SingleNoteEarTraining.createRandom()
     challengeController.setChallenge(challenge)
-  }
-
-  const stopNotes = (channel: Channel = 1) => {
-    synthesizer.send('cc', {
-      channel,
-      controller: 0x78,
-      value: 0,
-    })
   }
 
   const applause = async (): Promise<void> => {
@@ -141,17 +94,17 @@ export const createNoteMatchProgram = (
           height: 9,
           width: 9,
         }),
-        translate(
-          activeNoteIndex ?? 0,
-          0,
-          activeNoteIndex === undefined ? group() : (
-            createRectangle({
-              color: [0, 0, 127],
-              height: 8,
-              width: 1,
-            })
-          ),
-        ),
+        // translate(
+        //   activeNoteIndex ?? 0,
+        //   0,
+        //   activeNoteIndex === undefined ? group() : (
+        //     createRectangle({
+        //       color: [0, 0, 127],
+        //       height: 8,
+        //       width: 1,
+        //     })
+        //   ),
+        // ),
       ),
     initialize: () => {
       log.info('Initializing "Note Match" program.')
