@@ -1,3 +1,4 @@
+import type { RgbColor } from './color.ts'
 import type {
   HoldEvent,
   PressEvent,
@@ -38,10 +39,13 @@ export interface Cell<T = unknown> {
 
 /**
  * `Drawable` interface representing components which are displayed on a canvas.
+ *
+ * Note that the Type parameter is deprecated.
  **/
-export interface Drawable<T = unknown> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- deprecated, but preserved for compatibility
+export interface Drawable<T extends RgbColor = RgbColor> {
   /**
    * Draw this component onto the specified canvas.
    */
-  draw(): Cell<T>[]
+  draw(): Cell<RgbColor>[]
 }
