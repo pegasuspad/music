@@ -102,7 +102,7 @@ export const createSoundPickerProgram = (
         return () =>
           ({
             draw: () => [] as Cell<RgbColor>[],
-          }) satisfies Drawable<RgbColor>
+          }) satisfies Drawable
     }
   }
 

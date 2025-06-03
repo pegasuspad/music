@@ -1,4 +1,5 @@
-import { StateMachine } from './state-machine.ts'
+import { createStateMachineProgram } from '../state-machine-program.ts'
+import { StateMachine } from '../state-machine.ts'
 import { ChallengeIntroState } from './states/challenge-intro.ts'
 import { WaitingForInputState } from './states/waiting-for-input.ts'
 
@@ -10,10 +11,6 @@ export const AllFactories = [
   createWaitingForInputState,
 ] as const
 export type AllStateFactories = (typeof AllFactories)[number]
-
-type AllFactories = () =>
-  | typeof createChallengeIntroState
-  | typeof createWaitingForInputState
 
 export class MusicalExercise extends StateMachine<object, AllStateFactories> {
   public constructor() {
@@ -27,3 +24,6 @@ export class MusicalExercise extends StateMachine<object, AllStateFactories> {
     })
   }
 }
+
+export const createMusicalExerciseProgram = () =>
+  createStateMachineProgram(new MusicalExercise())

@@ -1,9 +1,7 @@
-import type { Channel, Note } from 'easymidi'
 import type { Program } from '../../engine/program.ts'
 import type { MidiDevice } from '../../midi/midi-device.ts'
 import { group } from '../../ui/components/group.ts'
 import { createRectangle } from '../../ui/components/rectangle.ts'
-import { translate } from '../../ui/transform/translate.ts'
 import type { NovationLaunchpadMiniMk3 } from '../../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import {
   ChallengeController,
@@ -14,9 +12,6 @@ import { SingleNoteEarTraining } from './challenges/single-note-ear-training.ts'
 import { logger } from '../../logger.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
-
-
-
 
 const MidiChannels = {
   Challenge: 4,

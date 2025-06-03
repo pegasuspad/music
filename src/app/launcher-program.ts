@@ -4,7 +4,7 @@ import { logger } from '../logger.ts'
 import type { MidiDevice } from '../midi/midi-device.ts'
 import type { Renderer } from '../ui/renderer.ts'
 import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
-import { MusicalExercise } from './note-match/musical-exercise.ts'
+import { MusicalExercise } from './musical-exercise/musical-exercise.ts'
 import { createSoundPickerProgram } from './sound-picker/sound-picker-program.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })

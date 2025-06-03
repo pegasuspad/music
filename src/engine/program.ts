@@ -1,4 +1,3 @@
-import type { RgbColor } from '../ui/color.ts'
 import type { Drawable } from '../ui/drawable.ts'
 
 /**
@@ -9,7 +8,7 @@ export interface Program {
   /**
    * Returns the root component of the program's UI.
    */
-  getRoot(): Drawable<RgbColor>
+  getRoot(): Drawable
 
   /**
    * Callback which performs optional initialization for this program.

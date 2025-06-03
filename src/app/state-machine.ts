@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash-es'
-import { group } from '../../ui/components/group.ts'
-import type { Drawable } from '../../ui/drawable.ts'
-import type { Program } from '../../engine/program.ts'
+import { group } from '../ui/components/group.ts'
+import type { Drawable } from '../ui/drawable.ts'
 
 /**
  * Represents a single state in a StateMachine.
@@ -108,24 +107,33 @@ export type StateTransitionsFor<
       TAllFactories
     >
 
+/**
+ * Build the full transition map type over every stateName K ∈ StateNameOf<AllFactories>.
+ * Each entry must either be the ERROR string (if that factory’s getResult())
+ * wasn’t properly narrowed, or else a Record< resultLiterals, AllFactories >.
+ */
+export type AllTransitionsForFactory<
+  AllFactories extends StateFactory<TContext>,
+  TContext,
+> = {
+  [K in ReturnType<AllFactories>['stateName']]: StateTransitionsFor<
+    AllFactories,
+    TContext,
+    K
+  >
+}
+
 export class StateMachine<
   TContext,
   TAllFactories extends StateFactory<TContext>,
-> implements Program
-{
+> {
   private context: TContext
   private state: ReturnType<TAllFactories>
 
   public constructor(
     initialContext: TContext,
     createInitialState: TAllFactories,
-    private transitions: {
-      [K in ReturnType<TAllFactories>['stateName']]: StateTransitionsFor<
-        TAllFactories,
-        TContext,
-        K
-      >
-    },
+    private transitions: AllTransitionsForFactory<TAllFactories, TContext>,
   ) {
     this.context = cloneDeep(initialContext)
     this.state = createInitialState(this.context) as ReturnType<TAllFactories>
@@ -169,7 +177,8 @@ export class StateMachine<
   }
 
   shutdown(): void {
-    // noop for now
+    // exit our current state
+    this.state.exit?.()
   }
 
   tick(elapsedSeconds: number): void {
