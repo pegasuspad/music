@@ -41,6 +41,28 @@ export interface SequenceState {
    * Index of the next to play
    */
   nextEventIndex: number
+
+  /**
+   * Callback to invoke when the last event of this sequence is fired.
+   */
+  onComplete?: () => void
+}
+
+export const getNoteTicks = (
+  note: 'whole' | 'half' | 'quarter' | 'eighth' | 'sixteenth' | 'thirty-second',
+  quantity = 1,
+  ppq = 480,
+): number => {
+  const multipliers = {
+    whole: 4,
+    half: 2,
+    quarter: 1,
+    eighth: 0.5,
+    sixteenth: 0.25,
+    'thirty-second': 0.125,
+  }
+
+  return multipliers[note] * ppq * quantity
 }
 
 export class MidiScheduler {
@@ -120,7 +142,7 @@ export class MidiScheduler {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const sequence = this.activeSequences.shift()!
 
-      // The event we’re firing is whatever seqState.nextIndex currently points to:
+      // The event we’re firing is whatever sequence.nextIndex currently points to:
       const event = sequence.events[sequence.nextEventIndex]
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
       this.device.send(event.event, event.data as any)
@@ -130,16 +152,21 @@ export class MidiScheduler {
         sequence.nextEventAt =
           now + this.deltaTimeInMs(sequence.events[sequence.nextEventIndex])
         this.activeSequences.push(sequence)
+      } else {
+        sequence.onComplete?.()
+        // If no more events, we simply let the sequence drop out.
       }
-
-      // If no more events, we simply let seqState drop out.
     }
 
     // Now set the timeout for whatever’s next (if anything remains):
     this.rescheduleLoop()
   }
 
-  public addSequence(events: SequencedEvent[]) {
+  /**
+   * Add a sequence of events to the scheduler for playback. If an `onComplete` callback is provided, it will be invoked
+   * when the sequence is complete.
+   */
+  public addSequence(events: SequencedEvent[], onComplete?: () => void) {
     // noop for empty events list
     if (events.length === 0) {
       return
@@ -149,6 +176,7 @@ export class MidiScheduler {
       events,
       nextEventAt: currentTimeMillis() + this.deltaTimeInMs(events[0]),
       nextEventIndex: 0,
+      onComplete,
     })
 
     this.rescheduleLoop()

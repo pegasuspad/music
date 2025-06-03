@@ -8,7 +8,7 @@ import {
   type EarTrainingChallenge,
 } from './ear-training-challenge.ts'
 import { NoteController } from './note-controller.ts'
-import { SingleNoteEarTraining } from './challenges/single-note-ear-training.ts'
+import { SingleNoteEarTraining } from '../musical-exercise/challenges/single-note-ear-training.ts'
 import { logger } from '../../logger.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })

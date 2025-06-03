@@ -2,9 +2,10 @@ import { createLauncher } from '../engine/launcher.ts'
 import type { Program } from '../engine/program.ts'
 import { logger } from '../logger.ts'
 import type { MidiDevice } from '../midi/midi-device.ts'
+import type { MidiScheduler } from '../midi/sequencing.ts'
 import type { Renderer } from '../ui/renderer.ts'
 import type { NovationLaunchpadMiniMk3 } from '../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
-import { MusicalExercise } from './musical-exercise/musical-exercise.ts'
+import { createMusicalExerciseProgram } from './musical-exercise/musical-exercise-program.ts'
 import { createSoundPickerProgram } from './sound-picker/sound-picker-program.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
@@ -13,6 +14,7 @@ export const createLauncherProgram = ({
   launchpad,
   options = {},
   renderer,
+  scheduler,
   synthesizer,
 }: {
   launchpad: NovationLaunchpadMiniMk3
@@ -26,6 +28,11 @@ export const createLauncherProgram = ({
   renderer: Renderer<unknown>
 
   /**
+   * MIDI scheduler used to playback event sequences.
+   */
+  scheduler: MidiScheduler
+
+  /**
    * Synthesizer capable of playing back sounds
    */
   synthesizer: MidiDevice
@@ -33,7 +40,11 @@ export const createLauncherProgram = ({
   return createLauncher(
     [
       () => createSoundPickerProgram(launchpad, synthesizer, options),
-      () => new MusicalExercise(),
+      () =>
+        createMusicalExerciseProgram({
+          device: synthesizer,
+          midi: scheduler,
+        }),
       // () => createNoteMatchProgram(launchpad, synthesizer),
       // () => createLiveModeProgram({ launchpad }),
     ],

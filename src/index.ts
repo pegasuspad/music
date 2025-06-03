@@ -6,6 +6,7 @@ import { createLaunchpadEventEmitter } from './vendors/novation/launchpad-mini-m
 import { logger } from './logger.ts'
 import { MidiDevice } from './midi/midi-device.ts'
 import { createLauncherProgram } from './app/launcher-program.ts'
+import { MidiScheduler } from './midi/sequencing.ts'
 
 const main = async (): Promise<void> => {
   const launchpad = new NovationLaunchpadMiniMk3()
@@ -43,6 +44,7 @@ const main = async (): Promise<void> => {
       speakInstrumentNames: true,
     },
     renderer,
+    scheduler: new MidiScheduler(fp30x),
     synthesizer: fp30x,
   })
 

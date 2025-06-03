@@ -11,6 +11,7 @@ import { Events } from '../../src/typed-event-emitter.ts'
 type NoteEventMap = {
   noteon: (msg: Note) => void
   noteoff: (msg: Note) => void
+  program: (msg: Program) => void
 }
 
 export class WebMidiPiano {
@@ -174,10 +175,16 @@ export class WebMidiPiano {
     }
 
     // Preload program 0 (acoustic_grand_piano) for channel 0 immediately
-    Soundfont.instrument(this.audioCtx, WebMidiPiano.PROGRAM_TO_INSTRUMENT[0]).then((p) => {
+    Soundfont.instrument(
+      this.audioCtx,
+      WebMidiPiano.PROGRAM_TO_INSTRUMENT[0],
+    ).then((p) => {
       this.programPlayers.set(0, p)
     })
-    Soundfont.instrument(this.audioCtx, WebMidiPiano.PROGRAM_TO_INSTRUMENT[126]).then((p) => {
+    Soundfont.instrument(
+      this.audioCtx,
+      WebMidiPiano.PROGRAM_TO_INSTRUMENT[126],
+    ).then((p) => {
       this.programPlayers.set(126, p)
     })
 
@@ -286,6 +293,8 @@ export class WebMidiPiano {
    * Other events are ignored.
    */
   send(event: string, msg: any) {
+    console.log(`MIDI event "${event}", data: ${JSON.stringify(msg, null, 2)}`)
+
     if (event === 'program') {
       // Update the program for that channel
       this.channelPrograms.set(msg.channel, msg.number)

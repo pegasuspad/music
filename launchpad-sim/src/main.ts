@@ -4,6 +4,7 @@ import type { MidiDevice } from '../../src/midi/midi-device.ts'
 import type { NovationLaunchpadMiniMk3 } from '../../src/vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { createLauncherProgram } from '../../src/app/launcher-program.ts'
 import { WebMidiPiano } from './web-midi-piano.ts'
+import { MidiScheduler } from '../../src/midi/sequencing.ts'
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const launchpadContainer = document.getElementById('launchpad')!
@@ -42,6 +43,7 @@ await loop({
   program: await createLauncherProgram({
     launchpad: createStubLaunchpad(),
     renderer,
+    scheduler: new MidiScheduler(piano as unknown as MidiDevice),
     synthesizer: piano as unknown as MidiDevice,
   }),
   renderer,

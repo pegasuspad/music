@@ -17,6 +17,7 @@ import type { NovationLaunchpadMiniMk3 } from '../../vendors/novation/launchpad-
 import { logger } from '../../logger.ts'
 import { speak } from '../speak.ts'
 import type { ReadbackEvent } from '../../vendors/novation/launchpad-mini-mk3/events.ts'
+import { MidiScheduler } from '../../midi/sequencing.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 
@@ -39,6 +40,8 @@ export const createSoundPickerProgram = (
   const selectedInstruments: Record<number, Instrument> = {}
   let selectedChannelId = controller.channels[0].id
   let selectedScreenId = 1
+
+  const scheduler = new MidiScheduler(synthesizer)
 
   // play notes when level changed?
   //
@@ -69,6 +72,81 @@ export const createSoundPickerProgram = (
     controller.selectSound(selectedChannelId, {
       program: instrument.patch,
     })
+
+    scheduler.addSequence([
+      {
+        deltaTime: 0,
+        event: 'noteon',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 60,
+        },
+      },
+      {
+        deltaTime: 480,
+        event: 'noteoff',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 60,
+        },
+      },
+      {
+        deltaTime: 240,
+        event: 'noteon',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 62,
+        },
+      },
+      {
+        deltaTime: 480,
+        event: 'noteoff',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 62,
+        },
+      },
+      {
+        deltaTime: 360,
+        event: 'noteon',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 60,
+        },
+      },
+      {
+        deltaTime: 240,
+        event: 'noteoff',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 60,
+        },
+      },
+      {
+        deltaTime: 120,
+        event: 'noteon',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 62,
+        },
+      },
+      {
+        deltaTime: 240,
+        event: 'noteoff',
+        data: {
+          channel: 3,
+          velocity: 64,
+          note: 62,
+        },
+      },
+    ])
   }
 
   const channelLevelScreenFactory = createChannelLevelScreen({
@@ -149,7 +227,7 @@ export const createSoundPickerProgram = (
         }
       }
 
-      selectedChannelId = 0
+      selectedChannelId = controller.channels[0].id
       selectedScreenId = 1
 
       controller.initialize()
