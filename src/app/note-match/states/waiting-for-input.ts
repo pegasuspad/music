@@ -1,7 +1,7 @@
 import { currentTimeMillis } from '../../../engine/timer.ts'
-import type { ProgramState } from '../state-machine-program.ts'
+import type { State } from '../state-machine.ts'
 
-export class WaitingForInputState implements ProgramState {
+export class WaitingForInputState implements State {
   public readonly stateName = 'waiting-for-input'
 
   private startAt = 0

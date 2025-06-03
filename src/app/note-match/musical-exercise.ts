@@ -1,17 +1,28 @@
-import { StateMachineProgram } from './state-machine-program.ts'
+import { StateMachine } from './state-machine.ts'
 import { ChallengeIntroState } from './states/challenge-intro.ts'
 import { WaitingForInputState } from './states/waiting-for-input.ts'
 
-type AllStates = typeof ChallengeIntroState | typeof WaitingForInputState
+const createChallengeIntroState = () => new ChallengeIntroState()
+const createWaitingForInputState = () => new WaitingForInputState()
 
-export class MusicalExercise extends StateMachineProgram<AllStates> {
+export const AllFactories = [
+  createChallengeIntroState,
+  createWaitingForInputState,
+] as const
+export type AllStateFactories = (typeof AllFactories)[number]
+
+type AllFactories = () =>
+  | typeof createChallengeIntroState
+  | typeof createWaitingForInputState
+
+export class MusicalExercise extends StateMachine<object, AllStateFactories> {
   public constructor() {
-    super(ChallengeIntroState, {
+    super({}, createChallengeIntroState, {
       'challenge-intro': {
-        done: WaitingForInputState,
+        done: createWaitingForInputState,
       },
       'waiting-for-input': {
-        done: ChallengeIntroState,
+        done: createChallengeIntroState,
       },
     })
   }

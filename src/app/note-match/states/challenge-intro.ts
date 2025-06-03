@@ -1,7 +1,7 @@
 import { currentTimeMillis } from '../../../engine/timer.ts'
-import type { ProgramState } from '../state-machine-program.ts'
+import type { State } from '../state-machine.ts'
 
-export class ChallengeIntroState implements ProgramState {
+export class ChallengeIntroState implements State {
   public readonly stateName = 'challenge-intro'
 
   private startAt = 0
