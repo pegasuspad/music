@@ -3,10 +3,7 @@ import { animate } from 'popmotion'
 import type { MidiScheduler } from '../../../midi/sequencing.ts'
 import type { CallAndResponseContext } from '../call-and-response-context.ts'
 import type { Drawable } from '../../../ui/drawable.ts'
-import { currentTimeMillis } from '../../../engine/timer.ts'
-import { P } from 'pino'
 import type { State } from '../../state-machine.ts'
-import type { RgbColor } from '../../../ui/color.ts'
 import { createRectangle } from '../../../ui/components/rectangle.ts'
 import { group } from '../../../ui/components/group.ts'
 import { translate } from '../../../ui/transform/translate.ts'
@@ -144,7 +141,7 @@ export const makePlayPositiveFeedbackState =
       getDrawable: () => flash().draw(),
       isDone: () => done,
       stateName: 'play-positive-feedback' as const,
-      tick: (elapsedSeconds: number) => {
+      update: (elapsedSeconds: number) => {
         flash().tick(elapsedSeconds)
       },
     } satisfies State

@@ -1,5 +1,5 @@
+import type { Program } from '../engine/engine.ts'
 import type { StateFactory, StateMachine } from './state-machine.ts'
-import type { Program } from '../engine/program.ts'
 
 /**
  * Creates a `Program` instance which wraps a state machine and forwards lifecycle events to it as needed. The program
@@ -12,15 +12,15 @@ export const createStateMachineProgram = <
   stateMachine: StateMachine<TContext, TFactories>,
 ): Program => {
   return {
-    getRoot: () => stateMachine.getRoot(),
+    getDrawable: () => stateMachine.getDrawable(),
     initialize: () => {
       stateMachine.initialize()
     },
     shutdown: () => {
       stateMachine.shutdown()
     },
-    tick: (elapsedSeconds: number) => {
-      stateMachine.tick(elapsedSeconds)
+    update: (elapsedSeconds: number) => {
+      stateMachine.update(elapsedSeconds)
     },
   }
 }

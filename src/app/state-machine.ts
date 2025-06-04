@@ -40,7 +40,7 @@ export interface State {
    * Called periodically when the application performs updates.
    * @param elapsedSeconds Amount of time, in (possibly fractional) seconds, since the last call to `tick`.
    */
-  tick?(elapsedSeconds: number): void
+  update?(elapsedSeconds: number): void
 }
 
 /**
@@ -167,7 +167,7 @@ export class StateMachine<
     this.state.enter?.()
   }
 
-  public getRoot(): Drawable {
+  public getDrawable(): Drawable {
     return this.state.getDrawable?.() ?? group()
   }
 
@@ -181,8 +181,8 @@ export class StateMachine<
     this.state.exit?.()
   }
 
-  tick(elapsedSeconds: number): void {
-    this.state.tick?.(elapsedSeconds)
+  update(elapsedSeconds: number): void {
+    this.state.update?.(elapsedSeconds)
     this.maybeAdvanceToNextState()
   }
 }

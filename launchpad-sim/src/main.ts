@@ -1,11 +1,11 @@
 import { WebRenderer } from './web-renderer'
-import { loop } from '../../src/engine/program-loop.ts'
 import type { MidiDevice } from '../../src/midi/midi-device.ts'
 import type { NovationLaunchpadMiniMk3 } from '../../src/vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { createLauncherProgram } from '../../src/app/launcher-program.ts'
 import { WebMidiPiano } from './web-midi-piano.ts'
 import { MidiScheduler } from '../../src/midi/sequencing.ts'
 import { InputRouter } from '../../src/ui/input/input-router.ts'
+import { Engine } from '../../src/engine/engine.ts'
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const launchpadContainer = document.getElementById('launchpad')!
@@ -33,9 +33,9 @@ const inputRouter = new InputRouter()
 padEvents.on('pad-down', inputRouter.handle.bind(inputRouter))
 padEvents.on('pad-up', inputRouter.handle.bind(inputRouter))
 
-await loop({
+const engine = new Engine({
   input: inputRouter,
-  program: await createLauncherProgram({
+  initialProgram: await createLauncherProgram({
     launchpad,
     renderer,
     scheduler: new MidiScheduler(piano as unknown as MidiDevice),
@@ -43,3 +43,5 @@ await loop({
   }),
   renderer,
 })
+
+await engine.start()

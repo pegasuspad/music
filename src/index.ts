@@ -1,11 +1,11 @@
 import { NovationLaunchpadMiniMk3 } from './vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { LaunchpadRenderer } from './vendors/novation/launchpad-mini-mk3/launchpad-renderer.ts'
-import { loop } from './engine/program-loop.ts'
 import { logger } from './logger.ts'
 import { MidiDevice } from './midi/midi-device.ts'
 import { createLauncherProgram } from './app/launcher-program.ts'
 import { MidiScheduler } from './midi/sequencing.ts'
 import { makeLaunchpadInputRouter } from './vendors/novation/launchpad-mini-mk3/launchpad-input.ts'
+import { Engine } from './engine/engine.ts'
 
 const main = async (): Promise<void> => {
   const launchpad = new NovationLaunchpadMiniMk3()
@@ -39,11 +39,13 @@ const main = async (): Promise<void> => {
     synthesizer: fp30x,
   })
 
-  await loop({
+  const engine = new Engine({
     input: makeLaunchpadInputRouter(launchpad),
-    program: launcher,
+    initialProgram: launcher,
     renderer,
   })
+
+  await engine.start()
 }
 
 await main()

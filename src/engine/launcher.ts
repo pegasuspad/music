@@ -1,8 +1,8 @@
 import { createButton } from '../ui/components/button.ts'
-import type { Program } from './program.ts'
 import { translate } from '../ui/transform/translate.ts'
 import { group } from '../ui/components/group.ts'
 import { createRectangle } from '../ui/components/rectangle.ts'
+import type { Program } from './engine.ts'
 
 export const createLauncher = async (
   programs: (() => Program)[],
@@ -56,15 +56,12 @@ export const createLauncher = async (
   })
 
   return {
-    getRoot: () =>
+    getDrawable: () =>
       activeProgram === undefined ?
         group(clearPad, launcherUi)
-      : group(clearPad, activeProgram.getRoot(), launcherUi),
-    onUpdate: (callback) => {
-      activeProgram?.onUpdate?.(callback)
-    },
-    tick: (elapsedSeconds) => {
-      activeProgram?.tick?.(elapsedSeconds)
+      : group(clearPad, activeProgram.getDrawable(), launcherUi),
+    update: (elapsedSeconds) => {
+      activeProgram?.update?.(elapsedSeconds)
     },
   }
 }

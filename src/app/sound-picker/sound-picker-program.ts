@@ -1,5 +1,4 @@
 import { group } from '../../ui/components/group.ts'
-import type { Program } from '../../engine/program.ts'
 import { createChannelLevelScreen } from './channel-level-screen/channel-level-screen.ts'
 import type { MidiDevice } from '../../midi/midi-device.ts'
 import { LaunchpadController } from './controller.ts'
@@ -18,6 +17,7 @@ import {
   type InstrumentFamily,
 } from '../../midi/instrument-data.ts'
 import { InstrumentsByFamily } from '../../midi/instruments.ts'
+import type { Program } from '../../engine/engine.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 
@@ -116,7 +116,7 @@ export const createSoundPickerProgram = (
   }
 
   return {
-    getRoot: () => {
+    getDrawable: () => {
       return group(
         makeSelectedScreen()(),
         createSideTrackSelector({
