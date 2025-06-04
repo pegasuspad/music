@@ -91,6 +91,7 @@ export const createCallAndResponseStateMachine = ({
         'wait-for-response': {
           correct: createPlayPositiveFeedbackState,
           incorrect: createPlayChallengeState,
+          'replay-challenge': createPlayChallengeState,
         },
       })
     }

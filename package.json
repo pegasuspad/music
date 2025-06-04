@@ -13,7 +13,8 @@
     "dotenv": "^16.5.0",
     "easymidi": "^3.1.0",
     "lodash-es": "^4.17.21",
-    "pino": "^9.7.0"
+    "pino": "^9.7.0",
+    "popmotion": "^11.0.5"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",

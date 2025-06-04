@@ -2,12 +2,14 @@ import { type Channel } from 'easymidi'
 import type { MidiDevice } from '../../../midi/midi-device.ts'
 import type { CallAndResponseContext } from '../call-and-response-context.ts'
 import { ChallengeInputHandler } from '../ressponse-input-handler.ts'
+import { currentTimeMillis } from '../../../engine/timer.ts'
 
 export const makeWaitForResponseState =
   ({
     channel,
     device,
     echoChannel,
+    timeout = 4000,
   }: {
     /**
      * MIDI channel on which user input will be received
@@ -23,8 +25,15 @@ export const makeWaitForResponseState =
      * MIDI channel to which notes played by the user will be retransmitted.
      */
     echoChannel: Channel
+
+    /**
+     * Timeout, in millseconds, before the challenge is replayed.
+     * @default 4000
+     */
+    timeout?: number
   }) =>
   ({ challenge }: CallAndResponseContext) => {
+    let replayChallengeAt = Number.MAX_SAFE_INTEGER
     const input = new ChallengeInputHandler(
       device,
       channel,
@@ -34,6 +43,7 @@ export const makeWaitForResponseState =
 
     return {
       enter: () => {
+        replayChallengeAt = currentTimeMillis() + timeout
         input.start()
       },
       exit: () => {
@@ -47,12 +57,18 @@ export const makeWaitForResponseState =
           case 'incorrect':
             return 'incorrect'
           default:
-            throw new Error(
-              'Unexpected call to getResult while challenge is still pending.',
-            )
+            if (currentTimeMillis() > replayChallengeAt) {
+              return 'replay-challenge'
+            } else {
+              throw new Error(
+                'Unexpected call to getResult while challenge is still pending.',
+              )
+            }
         }
       },
-      isDone: () => challenge.getResult() !== 'pending',
+      isDone: () =>
+        challenge.getResult() !== 'pending' ||
+        currentTimeMillis() > replayChallengeAt,
       stateName: 'wait-for-response' as const,
     }
   }

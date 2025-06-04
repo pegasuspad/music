@@ -73,80 +73,80 @@ export const createSoundPickerProgram = (
       program: instrument.patch,
     })
 
-    scheduler.addSequence([
-      {
-        deltaTime: 0,
-        event: 'noteon',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 60,
-        },
-      },
-      {
-        deltaTime: 480,
-        event: 'noteoff',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 60,
-        },
-      },
-      {
-        deltaTime: 240,
-        event: 'noteon',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 62,
-        },
-      },
-      {
-        deltaTime: 480,
-        event: 'noteoff',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 62,
-        },
-      },
-      {
-        deltaTime: 360,
-        event: 'noteon',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 60,
-        },
-      },
-      {
-        deltaTime: 240,
-        event: 'noteoff',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 60,
-        },
-      },
-      {
-        deltaTime: 120,
-        event: 'noteon',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 62,
-        },
-      },
-      {
-        deltaTime: 240,
-        event: 'noteoff',
-        data: {
-          channel: 3,
-          velocity: 64,
-          note: 62,
-        },
-      },
-    ])
+    // scheduler.addSequence([
+    //   {
+    //     deltaTime: 0,
+    //     event: 'noteon',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 60,
+    //     },
+    //   },
+    //   {
+    //     deltaTime: 480,
+    //     event: 'noteoff',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 60,
+    //     },
+    //   },
+    //   {
+    //     deltaTime: 240,
+    //     event: 'noteon',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 62,
+    //     },
+    //   },
+    //   {
+    //     deltaTime: 480,
+    //     event: 'noteoff',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 62,
+    //     },
+    //   },
+    //   {
+    //     deltaTime: 360,
+    //     event: 'noteon',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 60,
+    //     },
+    //   },
+    //   {
+    //     deltaTime: 240,
+    //     event: 'noteoff',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 60,
+    //     },
+    //   },
+    //   {
+    //     deltaTime: 120,
+    //     event: 'noteon',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 62,
+    //     },
+    //   },
+    //   {
+    //     deltaTime: 240,
+    //     event: 'noteoff',
+    //     data: {
+    //       channel: 3,
+    //       velocity: 64,
+    //       note: 62,
+    //     },
+    //   },
+    // ])
   }
 
   const channelLevelScreenFactory = createChannelLevelScreen({
