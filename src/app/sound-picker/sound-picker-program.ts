@@ -8,16 +8,16 @@ import { createTopScreenSelector } from './global-nav/top-screen-selector.ts'
 import { createSoundSelectScreen } from './sound-select-screen/sound-select-screen.ts'
 import type { Cell, Drawable } from '../../ui/drawable.ts'
 import type { RgbColor } from '../../ui/color.ts'
-import {
-  InstrumentFamilies,
-  type Instrument,
-  type InstrumentFamily,
-} from '../../midi/gm2.ts'
 import type { NovationLaunchpadMiniMk3 } from '../../vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { logger } from '../../logger.ts'
 import { speak } from '../speak.ts'
 import type { ReadbackEvent } from '../../vendors/novation/launchpad-mini-mk3/events.ts'
-import { MidiScheduler } from '../../midi/sequencing.ts'
+import {
+  InstrumentFamilies,
+  type Instrument,
+  type InstrumentFamily,
+} from '../../midi/instrument-data.ts'
+import { InstrumentsByFamily } from '../../midi/instruments.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 
@@ -40,8 +40,6 @@ export const createSoundPickerProgram = (
   const selectedInstruments: Record<number, Instrument> = {}
   let selectedChannelId = controller.channels[0].id
   let selectedScreenId = 1
-
-  const scheduler = new MidiScheduler(synthesizer)
 
   // play notes when level changed?
   //
@@ -70,83 +68,9 @@ export const createSoundPickerProgram = (
 
     selectedInstruments[selectedChannelId] = instrument
     controller.selectSound(selectedChannelId, {
+      bank: instrument.bank.lsb,
       program: instrument.patch,
     })
-
-    // scheduler.addSequence([
-    //   {
-    //     deltaTime: 0,
-    //     event: 'noteon',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 60,
-    //     },
-    //   },
-    //   {
-    //     deltaTime: 480,
-    //     event: 'noteoff',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 60,
-    //     },
-    //   },
-    //   {
-    //     deltaTime: 240,
-    //     event: 'noteon',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 62,
-    //     },
-    //   },
-    //   {
-    //     deltaTime: 480,
-    //     event: 'noteoff',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 62,
-    //     },
-    //   },
-    //   {
-    //     deltaTime: 360,
-    //     event: 'noteon',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 60,
-    //     },
-    //   },
-    //   {
-    //     deltaTime: 240,
-    //     event: 'noteoff',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 60,
-    //     },
-    //   },
-    //   {
-    //     deltaTime: 120,
-    //     event: 'noteon',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 62,
-    //     },
-    //   },
-    //   {
-    //     deltaTime: 240,
-    //     event: 'noteoff',
-    //     data: {
-    //       channel: 3,
-    //       velocity: 64,
-    //       note: 62,
-    //     },
-    //   },
-    // ])
   }
 
   const channelLevelScreenFactory = createChannelLevelScreen({
@@ -217,9 +141,11 @@ export const createSoundPickerProgram = (
       // reset instruments and mute all tracks except first
       for (let i = 0; i < channelCount; i++) {
         selectedFamilies[i] = InstrumentFamilies[0]
-        selectedInstruments[i] = InstrumentFamilies[0].instruments[0]
+        selectedInstruments[i] =
+          InstrumentsByFamily[selectedFamilies[i].name][0]
         controller.selectSound(i, {
-          program: InstrumentFamilies[0].instruments[0].patch,
+          bank: selectedInstruments[i].bank.lsb,
+          program: selectedInstruments[i].patch,
         })
 
         if (i > 0) {

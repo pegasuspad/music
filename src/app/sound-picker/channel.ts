@@ -81,7 +81,6 @@ export class Channel {
       value: bank,
     })
 
-    console.log('send pro', this._device)
     this._device.send('program', {
       channel: this.midiChannel,
       number: program,
