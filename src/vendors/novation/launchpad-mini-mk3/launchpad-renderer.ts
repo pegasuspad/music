@@ -1,5 +1,5 @@
 import { logger } from '../../../logger.ts'
-import { createCanvas, type Canvas } from '../../../ui/canvas.ts'
+import { type Canvas } from '../../../ui/canvas.ts'
 import type { RgbColor } from '../../../ui/color.ts'
 import type { Renderer } from '../../../ui/renderer.ts'
 import type { PadLighting } from './commands/set-led-lighting.ts'

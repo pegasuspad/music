@@ -1,7 +1,6 @@
 import type { Renderer } from '../ui/renderer.ts'
-import type { PadEventEmitter } from '../midi/pad-event.ts'
 import type { RgbColor } from '../ui/color.ts'
-import { createCanvas } from '../ui/canvas.ts'
+import { createCanvas, type Canvas } from '../ui/canvas.ts'
 import { InputRouter } from '../ui/input/input-router.ts'
 import { InputMap } from '../ui/input/input-map.ts'
 import type { Program } from './program.ts'
@@ -15,15 +14,14 @@ const normalize = (color: RgbColor): RgbColor => {
 }
 
 export const loop = async ({
-  events,
+  input,
   program,
   renderer,
 }: {
   /**
-   * Object which emits low-level 'pad' events from a device. These events will be routed to the UI components
-   * created by the `Program`.  If unset, no interaction handling will be provided.
+   * Input router used to map physical interactions to the appropriate UI handlers.
    */
-  events?: PadEventEmitter
+  input?: InputRouter
 
   /**
    * The `Program` to execute in this loop.
@@ -35,39 +33,36 @@ export const loop = async ({
    */
   renderer: Renderer<RgbColor>
 }): Promise<void> => {
-  const render = (inputRouter: InputRouter) => {
-    const canvas = createCanvas<RgbColor>(9, 9)
+  const draw = (): { canvas: Canvas<RgbColor>; inputMap: InputMap } => {
     const scene = program.getRoot()
-
     const cells = scene.draw()
-    inputRouter.setMap(InputMap.fromCells(cells, canvas.width, canvas.height))
+
+    const canvas = createCanvas<RgbColor>(9, 9)
     cells.forEach((cell) => {
       canvas.set(cell.x, cell.y, normalize(cell.value))
     })
 
-    renderer.render(canvas)
+    const inputMap = InputMap.fromCells(cells)
+
+    return { canvas, inputMap }
   }
 
-  const inputRouter = new InputRouter()
-
-  events?.on('pad-down', (event) => {
-    inputRouter.handle(event)
-  })
-
-  events?.on('pad-up', (event) => {
-    inputRouter.handle(event)
-  })
+  const render = (canvas: Canvas<RgbColor>) => {
+    renderer.render(canvas)
+  }
 
   await program.initialize?.()
 
   await startLoop({
     done: () => false,
+    handleInput: input?.tick.bind(input),
     render: () => {
-      render(inputRouter)
+      const { canvas, inputMap } = draw()
+      input?.setMap(inputMap)
+      render(canvas)
     },
     targetFps: 20,
     update: (elapsedSeconds) => {
-      inputRouter.tick(elapsedSeconds)
       program.tick?.(elapsedSeconds)
     },
   })

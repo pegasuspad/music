@@ -1,14 +1,15 @@
-import EventEmitter from 'node:events'
 import type { PadEventEmitter } from '../../../midi/pad-event.ts'
+import { Events } from '../../../typed-event-emitter.ts'
+import { InputRouter } from '../../../ui/input/input-router.ts'
 import type { NovationLaunchpadMiniMk3 } from './novation-launchpad-mini-mk3.ts'
 
 /**
  * @future - uses private launchpad field
  */
-export const createLaunchpadEventEmitter = (
+const createLaunchpadEventEmitter = (
   launchpad: NovationLaunchpadMiniMk3,
 ): PadEventEmitter => {
-  const emitter = new EventEmitter() as PadEventEmitter
+  const emitter = new Events() as PadEventEmitter
 
   launchpad._input.on('noteon', (note) => {
     const y = Math.floor((note.note - 11) / 10)
@@ -49,4 +50,23 @@ export const createLaunchpadEventEmitter = (
   })
 
   return emitter
+}
+
+export const makeLaunchpadInputRouter = (
+  launchpad: NovationLaunchpadMiniMk3,
+): InputRouter => {
+  const inputRouter = new InputRouter()
+  const events = createLaunchpadEventEmitter(launchpad)
+
+  events.on('pad-down', (event) => {
+    console.log('handle', JSON.stringify(event))
+    inputRouter.handle(event)
+  })
+
+  events.on('pad-up', (event) => {
+    console.log('handle', JSON.stringify(event))
+    inputRouter.handle(event)
+  })
+
+  return inputRouter
 }

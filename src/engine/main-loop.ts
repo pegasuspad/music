@@ -8,6 +8,7 @@ import { currentTimeMillis } from './timer.ts'
  */
 export const startLoop = ({
   done,
+  handleInput,
   render,
   targetFps = 60,
   update,
@@ -16,6 +17,12 @@ export const startLoop = ({
    * When this function returns true, the loop will exit and the promise will resolve.
    */
   done: () => boolean
+
+  /**
+   * Process any user input which has been received.
+   * @param elapsedSeconds Amount of time passed sicne the last call.
+   */
+  handleInput?: (elapsedSeconds: number) => void
 
   /**
    * Render function which is called approximately `targetFps` times per second to render the application's interface.
@@ -43,6 +50,7 @@ export const startLoop = ({
       const elapsedSeconds = (current - lastFrameAt) / 1000
       lastFrameAt = current
 
+      handleInput?.(elapsedSeconds)
       update?.(elapsedSeconds)
       render?.()
 

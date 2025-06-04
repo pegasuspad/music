@@ -5,6 +5,7 @@ import { InputMap } from './input-map.ts'
 
 export class InputRouter {
   private inputMap: InputMap | null = null
+
   /**
    * Map containing the start time for when any pressed pads were first pressed.
    **/

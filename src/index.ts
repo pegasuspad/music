@@ -1,17 +1,15 @@
 import { NovationLaunchpadMiniMk3 } from './vendors/novation/launchpad-mini-mk3/novation-launchpad-mini-mk3.ts'
 import { LaunchpadRenderer } from './vendors/novation/launchpad-mini-mk3/launchpad-renderer.ts'
-import { createSoundPickerProgram } from './app/sound-picker/sound-picker-program.ts'
 import { loop } from './engine/program-loop.ts'
-import { createLaunchpadEventEmitter } from './vendors/novation/launchpad-mini-mk3/launchpad-event-emitter.ts'
 import { logger } from './logger.ts'
 import { MidiDevice } from './midi/midi-device.ts'
 import { createLauncherProgram } from './app/launcher-program.ts'
 import { MidiScheduler } from './midi/sequencing.ts'
+import { makeLaunchpadInputRouter } from './vendors/novation/launchpad-mini-mk3/launchpad-input.ts'
 
 const main = async (): Promise<void> => {
   const launchpad = new NovationLaunchpadMiniMk3()
   const renderer = new LaunchpadRenderer(launchpad)
-  const events = createLaunchpadEventEmitter(launchpad)
 
   launchpad.events.on(
     'midi-stats',
@@ -30,13 +28,6 @@ const main = async (): Promise<void> => {
   const fp30x = new MidiDevice({
     name: 'Roland Digital Piano',
   })
-  fp30x.on('cc', (cc) => {
-    console.log('got cc', JSON.stringify(cc, null, 2))
-  })
-
-  fp30x.on('program', (program) => {
-    console.log('got program', JSON.stringify(program, null, 2))
-  })
 
   const launcher = await createLauncherProgram({
     launchpad,
@@ -48,10 +39,8 @@ const main = async (): Promise<void> => {
     synthesizer: fp30x,
   })
 
-  const soundPickerProgram = createSoundPickerProgram(launchpad, fp30x)
-
   await loop({
-    events,
+    input: makeLaunchpadInputRouter(launchpad),
     program: launcher,
     renderer,
   })

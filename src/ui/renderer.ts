@@ -12,7 +12,7 @@ export interface Renderer<T> {
   render(canvas: Canvas<T>): void
 
   /**
-   * Reseets the renderer to a default state.
+   * Resets the renderer to a default state.
    */
   reset(): void
 }

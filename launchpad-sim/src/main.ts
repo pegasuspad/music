@@ -5,6 +5,7 @@ import type { NovationLaunchpadMiniMk3 } from '../../src/vendors/novation/launch
 import { createLauncherProgram } from '../../src/app/launcher-program.ts'
 import { WebMidiPiano } from './web-midi-piano.ts'
 import { MidiScheduler } from '../../src/midi/sequencing.ts'
+import { InputRouter } from '../../src/ui/input/input-router.ts'
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const launchpadContainer = document.getElementById('launchpad')!
@@ -12,7 +13,7 @@ const launchpadContainer = document.getElementById('launchpad')!
 const pianoContainer = document.getElementById('piano')!
 const piano = new WebMidiPiano(pianoContainer)
 const renderer = new WebRenderer(launchpadContainer)
-const events = renderer.padEvents
+const padEvents = renderer.padEvents
 
 const noop = (..._args: unknown[]) => {
   // noop
@@ -27,21 +28,15 @@ const createStubLaunchpad = () =>
     sendCommand: noop,
   }) as unknown as NovationLaunchpadMiniMk3
 
-const createStubMidiDevice = () =>
-  ({
-    off: noop,
-    on: noop,
-    send: (...args: unknown[]) => {
-      console.log(
-        `Send '${args[0] as string}' with ${JSON.stringify(args[1], null, 2)}`,
-      )
-    },
-  }) as MidiDevice
+const launchpad = createStubLaunchpad()
+const inputRouter = new InputRouter()
+padEvents.on('pad-down', inputRouter.handle.bind(inputRouter))
+padEvents.on('pad-up', inputRouter.handle.bind(inputRouter))
 
 await loop({
-  events,
+  input: inputRouter,
   program: await createLauncherProgram({
-    launchpad: createStubLaunchpad(),
+    launchpad,
     renderer,
     scheduler: new MidiScheduler(piano as unknown as MidiDevice),
     synthesizer: piano as unknown as MidiDevice,
