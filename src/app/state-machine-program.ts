@@ -1,4 +1,4 @@
-import type { Program } from '../engine/engine.ts'
+import type { Program } from '../engine/program.ts'
 import type { StateFactory, StateMachine } from './state-machine.ts'
 
 /**

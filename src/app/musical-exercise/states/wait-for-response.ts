@@ -50,6 +50,7 @@ export const makeWaitForResponseState =
         input.stop()
         challenge.reset()
       },
+      getDrawable: challenge.getChallengeUi?.bind(challenge),
       getResult: () => {
         switch (challenge.getResult()) {
           case 'correct':

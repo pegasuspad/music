@@ -1,5 +1,5 @@
-import type { Program } from '../engine/engine.ts'
 import { createLauncher } from '../engine/launcher.ts'
+import type { Program } from '../engine/program.ts'
 import { logger } from '../logger.ts'
 import type { MidiDevice } from '../midi/midi-device.ts'
 import type { MidiScheduler } from '../midi/sequencing.ts'

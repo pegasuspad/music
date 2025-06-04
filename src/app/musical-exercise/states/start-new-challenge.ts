@@ -1,11 +1,11 @@
 import type { CallAndResponseContext } from '../call-and-response-context.ts'
-import { SingleNoteEarTraining } from '../challenges/single-note-ear-training.ts'
+import { HigherOrLower } from '../challenges/higher-or-lower.ts'
 
 export const makeStartNewChallenge =
   () => (context: CallAndResponseContext) => {
     return {
       enter: () => {
-        context.challenge = SingleNoteEarTraining.createRandom()
+        context.challenge = HigherOrLower.createRandom()
       },
       getResult: () => 'done' as const,
       isDone: () => true,

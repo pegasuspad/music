@@ -1,5 +1,6 @@
 import type { Channel } from 'easymidi'
 import type { SequencedEvent } from '../../midi/sequencing.ts'
+import type { Drawable } from '../../ui/drawable.ts'
 
 /**
  * Result of a call-and-resposne challenge, based on input provided by the user so far.
@@ -14,6 +15,17 @@ export type ChallengeResult =
 
 export interface CallAndResponseChallenge {
   /**
+   * Play the challenge sequence, resolving the promise when playback is complete.
+   * @param channel MIDI channel on which the challenge should be played
+   */
+  getChallengeSequence(channel: Channel): SequencedEvent[]
+
+  /**
+   * Returns the challenge's UI, if it requires UI selections from the user.
+   */
+  getChallengeUi?(): Drawable
+
+  /**
    * Retrieves the current result based on the user's input so far.
    */
   getResult(): ChallengeResult
@@ -22,12 +34,6 @@ export interface CallAndResponseChallenge {
    * Called when a user plays a note in response to the challenge.
    */
   handleResponseNote(note: number, duration: number): void
-
-  /**
-   * Play the challenge sequence, resolving the promise when playback is complete.
-   * @param channel MIDI channel on which the challenge should be played
-   */
-  getChallengeSequence(channel: Channel): SequencedEvent[]
 
   /**
    * Clear any input received so far, and prepare for a new response.

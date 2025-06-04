@@ -1,39 +1,10 @@
 import type { RgbColor } from '../ui/color.ts'
-import type { Drawable } from '../ui/drawable.ts'
 import type { InputRouter } from '../ui/input/input-router.ts'
 import type { Renderer } from '../ui/renderer.ts'
 import { InputMap } from '../ui/input/input-map.ts'
 import { createCanvas, type Canvas } from '../ui/canvas.ts'
 import { startLoop } from './main-loop.ts'
-
-/**
- * A `Program` is an exclusive application which defines visual output displayed on a device and the types of input
- * interactions which can be performed.
- */
-export interface Program {
-  /**
-   * Returns the root component of the program's UI.
-   */
-  getDrawable(): Drawable
-
-  /**
-   * Callback which performs optional initialization for this program.
-   */
-  initialize?: () => Promise<void> | void
-
-  /**
-   * Callback which performs optional cleanup (deregister event handlers, etc.) for this program.
-   */
-  shutdown?: () => Promise<void> | void
-
-  /**
-   * Called at a fixed interval to advance the program's state. May be undefined if a program does not perform any
-   * proactive updates (i.e. only responds to user generated input events).
-   *
-   * @param elapsedSeconds Elapsed time, in seconds, from when the last update was performed.
-   */
-  update?(elapsedSeconds: number): void
-}
+import type { Program } from './program.ts'
 
 const normalize = (color: RgbColor): RgbColor => {
   color[0] = Math.round(color[0])

@@ -17,7 +17,7 @@ import {
   type InstrumentFamily,
 } from '../../midi/instrument-data.ts'
 import { InstrumentsByFamily } from '../../midi/instruments.ts'
-import type { Program } from '../../engine/engine.ts'
+import type { Program } from '../../engine/program.ts'
 
 const log = logger.child({}, { msgPrefix: '[PROGRAM] ' })
 
