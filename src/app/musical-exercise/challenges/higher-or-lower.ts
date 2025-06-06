@@ -10,7 +10,7 @@ import { group } from '../../../ui/components/group.ts'
 import type { RgbColor } from '../../../ui/color.ts'
 import { translate } from '../../../ui/transform/translate.ts'
 
-const notes = [
+const naturalNotes = [
   {
     name: 'C',
     value: 60,
@@ -39,12 +39,36 @@ const notes = [
     name: 'B',
     value: 71,
   },
-
   {
     name: 'C',
     value: 72,
   },
 ]
+
+const sharpsAndFlats = [
+  {
+    name: 'C#',
+    value: 61,
+  },
+  {
+    name: 'D#',
+    value: 63,
+  },
+  {
+    name: 'F#',
+    value: 66,
+  },
+  {
+    name: 'G#',
+    value: 68,
+  },
+  {
+    name: 'A#',
+    value: 70,
+  },
+]
+
+const allNotes = [...naturalNotes, ...sharpsAndFlats]
 
 const getRandomInt = (max: number) => {
   return Math.floor(Math.random() * max)
@@ -98,11 +122,11 @@ export class HigherOrLower implements CallAndResponseChallenge {
     let second = 0
 
     while (first === second) {
-      first = getRandomInt(notes.length)
-      second = getRandomInt(notes.length)
+      first = getRandomInt(allNotes.length)
+      second = getRandomInt(allNotes.length)
     }
 
-    return new HigherOrLower(notes[first].value, notes[second].value)
+    return new HigherOrLower(allNotes[first].value, allNotes[second].value)
   }
 
   public constructor(note1: number, note2: number) {
@@ -162,7 +186,7 @@ export class HigherOrLower implements CallAndResponseChallenge {
         data: {
           channel,
           note: this.note1,
-          velocity: 96,
+          velocity: 127,
         },
       },
       {
@@ -175,12 +199,12 @@ export class HigherOrLower implements CallAndResponseChallenge {
         },
       },
       {
-        deltaTime: getNoteTicks('quarter'),
+        deltaTime: getNoteTicks('eighth'),
         event: 'noteon',
         data: {
           channel,
           note: this.note2,
-          velocity: 96,
+          velocity: 127,
         },
       },
       {
