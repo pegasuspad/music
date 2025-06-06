@@ -10,6 +10,7 @@ import { makeWaitForResponseState } from './states/wait-for-response.ts'
 import type { MidiDevice } from '../../midi/midi-device.ts'
 import { makeStartNewChallenge } from './states/start-new-challenge.ts'
 import { makePlayPositiveFeedbackState } from './states/play-positive-feedback.ts'
+import { makePlayNegativeFeedbackState } from './states/play-negative-feedback.ts'
 
 export const createCallAndResponseStateMachine = ({
   challengeChannel,
@@ -54,6 +55,11 @@ export const createCallAndResponseStateMachine = ({
     midi,
   })
 
+  const createPlayNegativeFeedbackState = makePlayNegativeFeedbackState({
+    channel: feedbackChannel,
+    midi,
+  })
+
   const createPlayPositiveFeedbackState = makePlayPositiveFeedbackState({
     channel: feedbackChannel,
     midi,
@@ -69,6 +75,7 @@ export const createCallAndResponseStateMachine = ({
 
   type AllStateFactories =
     | typeof createPlayChallengeState
+    | typeof createPlayNegativeFeedbackState
     | typeof createPlayPositiveFeedbackState
     | typeof createStartNewChallenge
     | typeof createWaitForResponseState
@@ -82,6 +89,9 @@ export const createCallAndResponseStateMachine = ({
         'play-challenge': {
           'wait-for-response': createWaitForResponseState,
         },
+        'play-negative-feedback': {
+          done: createPlayChallengeState,
+        },
         'play-positive-feedback': {
           done: createStartNewChallenge,
         },
@@ -90,7 +100,7 @@ export const createCallAndResponseStateMachine = ({
         },
         'wait-for-response': {
           correct: createPlayPositiveFeedbackState,
-          incorrect: createPlayChallengeState,
+          incorrect: createPlayNegativeFeedbackState,
           'replay-challenge': createPlayChallengeState,
         },
       })
