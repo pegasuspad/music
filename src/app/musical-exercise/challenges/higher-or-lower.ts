@@ -50,102 +50,48 @@ const getRandomInt = (max: number) => {
   return Math.floor(Math.random() * max)
 }
 
-const createUpArrow = ({ onPress }: { onPress: () => void }) => {
-  return group(
-    translate(
-      2,
-      0,
-      createRectangle({
-        color: [127, 127, 127],
-        height: 3,
-        width: 1,
-        onPress,
-      }),
-    ),
-    translate(
-      1,
-      1,
-      createRectangle({
-        color: [127, 127, 127],
-        height: 1,
-        width: 3,
-        onPress,
-      }),
-    ),
-    translate(
-      0,
-      0,
-      createRectangle({
-        color: [127, 127, 127],
-        height: 1,
-        width: 5,
-        onPress,
-      }),
-    ),
-  )
-}
-
-const createDownArrow = ({ onPress }: { onPress: () => void }) => {
-  return group(
-    translate(
-      2,
-      0,
-      createRectangle({
-        color: [127, 127, 127],
-        height: 3,
-        width: 1,
-        onPress,
-      }),
-    ),
-    translate(
-      1,
-      1,
-      createRectangle({
-        color: [127, 127, 127],
-        height: 1,
-        width: 3,
-        onPress,
-      }),
-    ),
-    translate(
-      0,
-      2,
-      createRectangle({
-        color: [127, 127, 127],
-        height: 1,
-        width: 5,
-        onPress,
-      }),
-    ),
-  )
-}
-
-const makeButton = ({
+const makeArrowButton = ({
   color,
   direction,
   onPress,
+  onRelease,
+  rows = 3,
 }: {
   color: RgbColor
-  direction: 'up' | 'down'
-  onPress: () => void
-}) =>
-  group(
-    createRectangle({
-      color,
-      height: 3,
-      width: 7,
-      onPress,
+  direction: 'down' | 'up'
+  onPress?: () => void
+  onRelease?: () => void
+  rows?: number
+}) => {
+  // the row containing the 'point' of the arrow
+  const pointRow = direction === 'up' ? rows - 1 : 0
+  // the y direction in which the arrow gets wider
+  const growDirection = direction === 'up' ? -1 : 1
+
+  return group(
+    ...Array.from({ length: rows }, (_, i) => {
+      return translate(
+        rows - 1 - i,
+        pointRow + growDirection * i,
+        createRectangle({
+          color,
+          height: 1,
+          onPress,
+          onRelease,
+          width: 1 + 2 * i,
+        }),
+      )
     }),
-    ...(direction === 'up' ?
-      [translate(1, 0, createUpArrow({ onPress }))]
-    : [translate(1, 0, createDownArrow({ onPress }))]),
   )
+}
 
 export class HigherOrLower implements CallAndResponseChallenge {
   public readonly challengeReplayInterval = 6000
   private note1: number
   private note2: number
   private result: ChallengeResult = 'pending'
+  private downPressed = false
+  private upPressed = false
 
   public static createRandom(): CallAndResponseChallenge {
     let first = 0
@@ -169,21 +115,29 @@ export class HigherOrLower implements CallAndResponseChallenge {
       translate(
         0,
         4,
-        makeButton({
-          color: [127, 127, 0],
+        makeArrowButton({
+          color: this.upPressed ? [96, 96, 0] : [127, 127, 0],
           direction: 'up',
           onPress: () => {
+            this.upPressed = true
+          },
+          onRelease: () => {
+            this.upPressed = false
             this.result = this.note2 > this.note1 ? 'correct' : 'incorrect'
           },
         }),
       ),
       translate(
-        1,
         0,
-        makeButton({
-          color: [0, 0, 127],
+        1,
+        makeArrowButton({
+          color: this.downPressed ? [0, 0, 96] : [0, 0, 127],
           direction: 'down',
           onPress: () => {
+            this.downPressed = true
+          },
+          onRelease: () => {
+            this.downPressed = false
             this.result = this.note2 < this.note1 ? 'correct' : 'incorrect'
           },
         }),

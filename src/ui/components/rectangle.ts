@@ -1,6 +1,6 @@
 import type { RgbColor } from '../color.ts'
 import type { Cell, Drawable } from '../drawable.ts'
-import type { PressEvent } from '../input/input-event.ts'
+import type { PressEvent, ReleaseEvent } from '../input/input-event.ts'
 
 /**
  * Creates a `Drawable` which displays a filled rectangle with the given dimensions and color.
@@ -10,12 +10,14 @@ export const createRectangle = ({
   width,
   height,
   onPress,
+  onRelease,
 }: {
   color: RgbColor
   width: number
   height: number
   onPress?: (event: PressEvent) => void
-}): Drawable<RgbColor> => ({
+  onRelease?: (event: ReleaseEvent) => void
+}): Drawable => ({
   draw: () => {
     const results: Cell<RgbColor>[] = []
     for (let x = 0; x < width; x++) {
@@ -25,6 +27,7 @@ export const createRectangle = ({
           x,
           y,
           onPress,
+          onRelease,
         })
       }
     }
