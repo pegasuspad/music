@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash-es'
 import { group } from '../ui/components/group.ts'
 import type { Drawable } from '../ui/drawable.ts'
+import { SimpleEntityManager, type EntityManager } from '../engine/entity.ts'
 
 /**
  * Represents a single state in a StateMachine.
@@ -9,7 +10,7 @@ export interface State {
   /**
    * Callback invoked when this state is entered.
    */
-  enter?(): void
+  enter?(entityManager: EntityManager): void
 
   /**
    * Callback invoked when this state is exited.
@@ -123,11 +124,20 @@ export type AllTransitionsForFactory<
   >
 }
 
+export interface StateMachineContext {
+  /**
+   * EntityManager which can be used to regsiter entities. When the current state is 'exited', all registerd entities
+   * will be cleared automatically.
+   */
+  entityManager: EntityManager
+}
+
 export class StateMachine<
   TContext,
   TAllFactories extends StateFactory<TContext>,
 > {
   private context: TContext
+  private entityManager = new SimpleEntityManager()
   private state: ReturnType<TAllFactories>
 
   public constructor(
@@ -160,20 +170,24 @@ export class StateMachine<
     // exit old state
     console.log(`Exiting: ${this.state.stateName}`)
     this.state.exit?.()
+    this.entityManager.clear()
     // create next state
     this.state = createNextState(this.context) as ReturnType<TAllFactories>
     // enter new state
     console.log(`Entering: ${this.state.stateName}`)
-    this.state.enter?.()
+    this.state.enter?.(this.entityManager)
   }
 
   public getDrawable(): Drawable {
-    return this.state.getDrawable?.() ?? group()
+    return group(
+      this.entityManager.getDrawable(),
+      this.state.getDrawable?.() ?? group(),
+    )
   }
 
   public initialize(): void {
     // enter our initial state
-    this.state.enter?.()
+    this.state.enter?.(this.entityManager)
   }
 
   shutdown(): void {
@@ -182,6 +196,7 @@ export class StateMachine<
   }
 
   update(elapsedSeconds: number): void {
+    this.entityManager.update(elapsedSeconds)
     this.state.update?.(elapsedSeconds)
     this.maybeAdvanceToNextState()
   }

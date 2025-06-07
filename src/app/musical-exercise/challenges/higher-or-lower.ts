@@ -190,7 +190,7 @@ export class HigherOrLower implements CallAndResponseChallenge {
         },
       },
       {
-        deltaTime: getNoteTicks('quarter'),
+        deltaTime: getNoteTicks('half'),
         event: 'noteoff',
         data: {
           channel,
@@ -208,7 +208,7 @@ export class HigherOrLower implements CallAndResponseChallenge {
         },
       },
       {
-        deltaTime: getNoteTicks('quarter'),
+        deltaTime: getNoteTicks('half'),
         event: 'noteoff',
         data: {
           channel,

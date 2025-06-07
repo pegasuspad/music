@@ -6,63 +6,75 @@ import type { State } from '../../state-machine.ts'
 import { createRectangle } from '../../../ui/components/rectangle.ts'
 import { group } from '../../../ui/components/group.ts'
 import { translate } from '../../../ui/transform/translate.ts'
+import type { Entity } from '../../../engine/entity.ts'
+import type { Drawable } from '../../../ui/drawable.ts'
 
-const makeRedX = () => {
-  let color = 0
-  let update: ((elapsedMs: number) => void) | undefined
+export class RedXEntity implements Entity {
+  private color = 0
+  private alive = true
+  private animate: ((elapsedMs: number) => void) | undefined
 
-  animate({
-    driver: (callback) => {
-      update = callback
-      return {
-        start: () => {
-          update = callback
-        },
-        stop: () => {
-          update = undefined
-        },
-      }
-    },
-    duration: 500,
-    from: 0,
-    repeat: 1,
-    repeatType: 'reverse',
-    to: 127,
-    type: 'spring',
-    onUpdate: (latest) => {
-      color = latest
-    },
-  })
+  public constructor() {
+    animate({
+      driver: (callback) => {
+        this.animate = callback
+        return {
+          start: () => {
+            this.animate = callback
+          },
+          stop: () => {
+            this.animate = undefined
+          },
+        }
+      },
+      duration: 500,
+      from: 0,
+      repeat: 1,
+      repeatType: 'reverse',
+      to: 127,
+      type: 'spring',
+      onUpdate: (latest) => {
+        this.color = latest
+      },
+      onComplete: () => {
+        this.alive = false
+      },
+    })
+  }
 
-  return () => ({
-    draw: () => {
-      return group(
-        ...Array.from({ length: 7 }, (_, y) => y).flatMap((y) => [
-          translate(
-            y,
-            y,
-            createRectangle({
-              color: [color, 0, 0],
-              height: 1,
-              width: 1,
-            }),
-          ),
-          translate(
-            6 - y,
-            y,
-            createRectangle({
-              color: [color, 0, 0],
-              height: 1,
-              width: 1,
-            }),
-          ),
-        ]),
-      )
-    },
-    tick: (elapsedSeconds: number) => {
-      update?.(elapsedSeconds * 1000)
-    },
-  })
+  getDrawable(): Drawable {
+    console.log('drawing x')
+    return group(
+      ...Array.from({ length: 7 }, (_, y) => y).flatMap((y) => [
+        translate(
+          y,
+          y,
+          createRectangle({
+            color: [this.color, 0, 0],
+            height: 1,
+            width: 1,
+          }),
+        ),
+        translate(
+          6 - y,
+          y,
+          createRectangle({
+            color: [this.color, 0, 0],
+            height: 1,
+            width: 1,
+          }),
+        ),
+      ]),
+    )
+  }
+
+  isAlive(): boolean {
+    return this.alive
+  }
+
+  public update(elapsedSeconds: number): void {
+    this.animate?.(elapsedSeconds * 1000)
+  }
 }
 
 export const makePlayNegativeFeedbackState =
@@ -82,10 +94,10 @@ export const makePlayNegativeFeedbackState =
   }) =>
   (_: CallAndResponseContext) => {
     let done = false
-    const redX = makeRedX()
 
     return {
-      enter: () => {
+      enter: (entityManager) => {
+        entityManager.add(new RedXEntity())
         midi.addSequence(
           [
             {
@@ -124,11 +136,7 @@ export const makePlayNegativeFeedbackState =
         )
       },
       getResult: () => 'done' as const,
-      getDrawable: () => redX().draw(),
       isDone: () => done,
       stateName: 'play-negative-feedback' as const,
-      update: (elapsedSeconds: number) => {
-        redX().tick(elapsedSeconds)
-      },
     } satisfies State
   }
